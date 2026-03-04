@@ -47,7 +47,7 @@ class TodoModel extends Equatable{
       description: description ?? this.description,
       isComplete: isComplete ?? this.isComplete,
       addedDate: addedDate ?? this.addedDate,
-      dueDate: identical(dueDate, _noValue)
+      dueDate: identical(dueDate, _noValue,)
           ? this.dueDate
           : dueDate as DateTime?,
       reminderTime: identical(reminderTime, _noValue)

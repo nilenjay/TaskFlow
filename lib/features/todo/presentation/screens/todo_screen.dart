@@ -41,18 +41,21 @@ class TodoScreen extends StatelessWidget {
               },
               builder: (context, state) {
 
+                print("UI rebuild with state: $state");
+
                 List<TodoModel> todos = [];
                 TodoFilter currentFilter = TodoFilter.all;
-                List<TodoModel> filteredTodos = todos;
 
                 if (state is TodoLoaded) {
                   todos = state.todos;
                   currentFilter = state.filter;
-
-                } else if (state is TodoDeleted) {
+                }
+                else if (state is TodoDeleted) {
                   todos = state.todos;
                   currentFilter = state.filter;
                 }
+
+                List<TodoModel> filteredTodos = List.from(todos);
 
                 switch (currentFilter) {
                   case TodoFilter.active:
@@ -240,6 +243,7 @@ class TodoScreen extends StatelessWidget {
                 onPressed: () {
                   final controller = TextEditingController();
                   DateTime? selectedDueDate;
+                  DateTime? selectedReminderTime;
 
                   showDialog(
                     context: context,
@@ -279,6 +283,39 @@ class TodoScreen extends StatelessWidget {
                                     }
                                   },
                                 ),
+                                OutlinedButton.icon(
+                                  icon: const Icon(Icons.alarm),
+                                  label: const Text('Pick Reminder Time (optional)'),
+                                  onPressed: () async {
+                                    final timeOfDay = await showTimePicker(
+                                      context: dialogContext,
+                                      initialTime: TimeOfDay.now(),
+                                    );
+
+                                    if (timeOfDay != null) {
+                                      final baseDate = selectedDueDate ?? DateTime.now();
+
+                                      final reminder = DateTime(
+                                        baseDate.year,
+                                        baseDate.month,
+                                        baseDate.day,
+                                        timeOfDay.hour,
+                                        timeOfDay.minute,
+                                      );
+
+                                      setState(() {
+                                        selectedReminderTime = reminder;
+                                      });
+                                    }
+                                  },
+                                ),
+                                if (selectedReminderTime != null) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Reminder: ${selectedReminderTime!.toLocal()}',
+                                    style: const TextStyle(color: Colors.grey),
+                                  ),
+                                ],
 
                                 if (selectedDueDate != null) ...[
                                   const SizedBox(height: 8),
@@ -294,16 +331,17 @@ class TodoScreen extends StatelessWidget {
                                 onPressed: () {
                                   final text = controller.text.trim();
 
-                                  if (text.isNotEmpty) {
-                                    dialogContext.read<TodoBloc>().add(
-                                      AddTodo(
-                                        description: text,
-                                        dueDate: selectedDueDate,
-                                      ),
-                                    );
-                                  }
+                                  if (text.isEmpty) return;
 
-                                  Navigator.pop(dialogContext);
+                                  Navigator.pop(dialogContext); // close dialog first
+
+                                  context.read<TodoBloc>().add(
+                                    AddTodo(
+                                      description: text,
+                                      dueDate: selectedDueDate,
+                                      reminderTime: selectedReminderTime,
+                                    ),
+                                  );
                                 },
                                 child: const Text('Add'),
                               ),

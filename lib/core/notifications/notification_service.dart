@@ -23,10 +23,12 @@ class NotificationService {
 
     await _plugin.initialize(settings);
 
-    await _plugin
+    final androidPlugin = _plugin
         .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+        AndroidFlutterLocalNotificationsPlugin>();
+
+    await androidPlugin?.requestNotificationsPermission();
+    await androidPlugin?.requestExactAlarmsPermission(); // ⭐ IMPORTANT
 
     _initialized = true;
   }

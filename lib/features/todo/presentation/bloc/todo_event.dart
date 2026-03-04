@@ -13,13 +13,15 @@ abstract class TodoEvent extends Equatable{
 class AddTodo extends TodoEvent{
   final String description;
   final DateTime? dueDate;
+  final DateTime? reminderTime;
   const AddTodo({
     required this.description,
     this.dueDate,
+    this.reminderTime,
 });
   @override
   // TODO: implement props
-  List<Object?> get props => [description,dueDate];
+  List<Object?> get props => [description,dueDate,reminderTime];
 }
 
 class DeleteTodo extends TodoEvent{
@@ -78,4 +80,11 @@ class EditTodo extends TodoEvent {
   @override
   // TODO: implement props
   List<Object?> get props => [updatedTodo];
+}
+
+class LoadTodos extends TodoEvent {
+  const LoadTodos();
+
+  @override
+  List<Object?> get props => [];
 }
