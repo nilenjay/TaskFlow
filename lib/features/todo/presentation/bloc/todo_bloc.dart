@@ -201,6 +201,7 @@ class TodoBloc extends Bloc<TodoEvent,TodoState>{
     }
     print("Reminder scheduled for ${todo.description}");
     print("Reminder time: $scheduledTime");
+    print("Scheduling notification for: $scheduledTime");
   }
   Future<void> _editTodo(EditTodo event, Emitter<TodoState> emit)async {
     List<TodoModel>oldTodos=[];

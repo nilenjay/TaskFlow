@@ -6,12 +6,27 @@ import 'package:todo_app/features/todo/presentation/bloc/todo_bloc.dart';
 import 'package:todo_app/features/todo/presentation/bloc/todo_event.dart';
 import 'package:todo_app/features/todo/presentation/bloc/todo_state.dart';
 
+import '../../../../core/notifications/notification_service.dart';
 import '../../data/datasources/todo_local_datasource.dart';
 import '../../data/models/todo_model.dart';
 
 
-class TodoScreen extends StatelessWidget {
+class TodoScreen extends StatefulWidget {
   const TodoScreen({super.key});
+
+  @override
+  State<TodoScreen> createState() => _TodoScreenState();
+}
+class _TodoScreenState extends State<TodoScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+    NotificationService.instance.testNotification();
+    NotificationService.instance.testScheduledNotification().then((_) {
+      NotificationService.instance.checkPendingNotifications();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
