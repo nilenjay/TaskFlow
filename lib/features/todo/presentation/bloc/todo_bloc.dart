@@ -164,44 +164,78 @@ class TodoBloc extends Bloc<TodoEvent,TodoState>{
   }
 
   Future<void> _scheduleReminder(TodoModel todo) async {
+
     DateTime? scheduledTime;
 
-    // ✅ custom reminder wins
+    if (todo.startReminder != null) {
+      await NotificationService.instance.scheduleNotification(
+        id: (todo.id + "_start").hashCode,
+        title: "Start Task",
+        body: "Start working on: ${todo.description}",
+        scheduledTime: todo.startReminder!,
+      );
+    }
+
+    /// 1️⃣ If user explicitly set reminder → use it
     if (todo.reminderTime != null) {
       scheduledTime = todo.reminderTime;
     }
-    // ✅ otherwise default = dueDate - 30 minutes
-    else if (todo.dueDate != null) {
-      scheduledTime =
-          todo.dueDate!.subtract(const Duration(minutes: 30));
-    }
-    print("Scheduling reminder for ${todo.description} at $scheduledTime");
 
-    // 🚫 nothing to schedule
+    /// 2️⃣ Smart reminder logic
+    else if (todo.dueDate != null) {
+
+      final now = DateTime.now();
+      final due = todo.dueDate!;
+
+      final difference = due.difference(now).inDays;
+
+      /// Due today → remind 30 minutes before
+      if (difference == 0) {
+        scheduledTime = due.subtract(const Duration(minutes: 30));
+      }
+
+      /// Due tomorrow → remind today at 8 PM
+      else if (difference == 1) {
+        scheduledTime = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          20,
+          0,
+        );
+      }
+
+      /// Due later → remind 1 day before at 8 PM
+      else if (difference > 1) {
+        final reminderDay = due.subtract(const Duration(days: 1));
+
+        scheduledTime = DateTime(
+          reminderDay.year,
+          reminderDay.month,
+          reminderDay.day,
+          20,
+          0,
+        );
+      }
+    }
+
+    /// 🚫 Nothing to schedule
     if (scheduledTime == null) return;
 
-    // 🚫 don't schedule past notifications
+    /// 🚫 Don't schedule past notifications
     if (scheduledTime.isBefore(DateTime.now())) return;
 
-    // 🛡 VERY IMPORTANT: cancel existing first (prevents duplicates)
+    /// Cancel existing notification
     await NotificationService.instance
         .cancelNotification(todo.id.hashCode);
-    print("Cancelling reminder for ${todo.description}");
 
-    // ✅ schedule fresh
-    try {
-      await NotificationService.instance.scheduleNotification(
-        id: todo.id.hashCode,
-        title: 'Todo Reminder',
-        body: todo.description,
-        scheduledTime: scheduledTime,
-      );
-    } catch (e) {
-      print("Notification scheduling failed: $e");
-    }
-    print("Reminder scheduled for ${todo.description}");
-    print("Reminder time: $scheduledTime");
-    print("Scheduling notification for: $scheduledTime");
+    /// Schedule new notification
+    await NotificationService.instance.scheduleNotification(
+      id: todo.id.hashCode,
+      title: "Todo Reminder",
+      body: todo.description,
+      scheduledTime: scheduledTime,
+    );
   }
   Future<void> _editTodo(EditTodo event, Emitter<TodoState> emit)async {
     List<TodoModel>oldTodos=[];

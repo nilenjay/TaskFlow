@@ -25,6 +25,9 @@ class TodoModel extends Equatable{
   @HiveField(5)
   final DateTime? reminderTime;
 
+  @HiveField(6)
+  final DateTime? startReminder;
+
   const TodoModel({
     required this.id,
     required this.description,
@@ -32,6 +35,7 @@ class TodoModel extends Equatable{
     required this.addedDate,
     this.dueDate,
     this.reminderTime,
+    this.startReminder
 });
 
   TodoModel copyWith({
