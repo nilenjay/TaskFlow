@@ -27,39 +27,42 @@ class NotificationService {
     tz.initializeTimeZones();
 
     try {
-      final TimezoneInfo localTimezone = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(localTimezone.identifier));
-    } catch (e) {
-      // Fallback to UTC if device timezone name isn't in the database
+      final timezone = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timezone.identifier));
+    } catch (_) {
       tz.setLocalLocation(tz.UTC);
     }
 
-    const InitializationSettings settings = InitializationSettings(
+    const settings = InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
     );
 
     await _plugin.initialize(settings);
 
-    final AndroidFlutterLocalNotificationsPlugin androidPlugin =
-    AndroidFlutterLocalNotificationsPlugin();
+    final androidPlugin =
+    _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
 
-    await androidPlugin.createNotificationChannel(_channel);
-    await androidPlugin.requestNotificationsPermission();
-    await androidPlugin.requestExactAlarmsPermission();
+    await androidPlugin?.createNotificationChannel(_channel);
+    await androidPlugin?.requestNotificationsPermission();
+    await androidPlugin?.requestExactAlarmsPermission();
 
     _initialized = true;
   }
+
+  /// Schedule a reminder notification
   Future<void> scheduleNotification({
     required int id,
     required String title,
     required String body,
     required DateTime scheduledTime,
   }) async {
-    final tz.TZDateTime tzTime = tz.TZDateTime.from(scheduledTime, tz.local);
+    final now = DateTime.now();
 
-    print("TZ time being scheduled: $tzTime");
-    print("Current TZ time: ${tz.TZDateTime.now(tz.local)}");
-    print("Is in future: ${tzTime.isAfter(tz.TZDateTime.now(tz.local))}");
+    /// Don't schedule past notifications
+    if (scheduledTime.isBefore(now)) return;
+
+    final tzTime = tz.TZDateTime.from(scheduledTime, tz.local);
 
     await _plugin.zonedSchedule(
       id,
@@ -75,50 +78,24 @@ class NotificationService {
           priority: Priority.high,
         ),
       ),
-
-
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
       UILocalNotificationDateInterpretation.absoluteTime,
     );
-    final pending = await _plugin.pendingNotificationRequests();
-    print("Pending after schedule: ${pending.length}");
   }
 
+  /// Cancel a scheduled notification
   Future<void> cancelNotification(int id) async {
     await _plugin.cancel(id);
   }
 
-  Future<void> testNotification() async {
-    await _plugin.show(
-      999,
-      "Test Notification",
-      "If you see this, notifications work.",
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'todo_channel',
-          'Todo Reminders',
-          importance: Importance.max,
-          priority: Priority.high,
-        ),
-      ),
-    );
+  /// Cancel all notifications
+  Future<void> cancelAll() async {
+    await _plugin.cancelAll();
   }
 
-  Future<void> testScheduledNotification() async {
-    final scheduledTime = DateTime.now().add(const Duration(seconds: 10));
-    await scheduleNotification(
-      id: 1000,
-      title: "Scheduled Test",
-      body: "This should appear in 10 seconds",
-      scheduledTime: scheduledTime,
-    );
-  }
-  Future<void> checkPendingNotifications() async {
-    final pending = await _plugin.pendingNotificationRequests();
-    print("Total pending: ${pending.length}");
-    for (final n in pending) {
-      print("Pending → id: ${n.id}, title: ${n.title}, body: ${n.body}");
-    }
+  /// Get pending notifications (useful for debugging or analytics)
+  Future<List<PendingNotificationRequest>> getPending() async {
+    return _plugin.pendingNotificationRequests();
   }
 }
