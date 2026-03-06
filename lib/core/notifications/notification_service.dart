@@ -39,28 +39,24 @@ class NotificationService {
 
     await _plugin.initialize(settings);
 
-    final androidPlugin =
-    _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    // ✅ Direct instantiation — avoids version compatibility issues
+    final AndroidFlutterLocalNotificationsPlugin androidPlugin =
+    AndroidFlutterLocalNotificationsPlugin();
 
-    await androidPlugin?.createNotificationChannel(_channel);
-    await androidPlugin?.requestNotificationsPermission();
-    await androidPlugin?.requestExactAlarmsPermission();
+    await androidPlugin.createNotificationChannel(_channel);
+    await androidPlugin.requestNotificationsPermission();
+    await androidPlugin.requestExactAlarmsPermission();
 
     _initialized = true;
   }
 
-  /// Schedule a reminder notification
   Future<void> scheduleNotification({
     required int id,
     required String title,
     required String body,
     required DateTime scheduledTime,
   }) async {
-    final now = DateTime.now();
-
-    /// Don't schedule past notifications
-    if (scheduledTime.isBefore(now)) return;
+    if (scheduledTime.isBefore(DateTime.now())) return;
 
     final tzTime = tz.TZDateTime.from(scheduledTime, tz.local);
 
@@ -84,17 +80,14 @@ class NotificationService {
     );
   }
 
-  /// Cancel a scheduled notification
   Future<void> cancelNotification(int id) async {
     await _plugin.cancel(id);
   }
 
-  /// Cancel all notifications
   Future<void> cancelAll() async {
     await _plugin.cancelAll();
   }
 
-  /// Get pending notifications (useful for debugging or analytics)
   Future<List<PendingNotificationRequest>> getPending() async {
     return _plugin.pendingNotificationRequests();
   }

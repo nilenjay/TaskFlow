@@ -45,7 +45,7 @@ class TodoModel extends Equatable{
     DateTime? addedDate,
     Object? dueDate = _noValue,
     Object? reminderTime = _noValue,
-    DateTime? startReminder,
+    Object? startReminder = _noValue,
   }) {
     return TodoModel(
       id: id ?? this.id,
@@ -58,7 +58,9 @@ class TodoModel extends Equatable{
       reminderTime: identical(reminderTime, _noValue)
           ? this.reminderTime
           : reminderTime as DateTime?,
-      startReminder: startReminder ?? this.startReminder,
+      startReminder: identical(startReminder, _noValue)
+          ? this.startReminder
+          : startReminder as DateTime?,
     );
   }
 

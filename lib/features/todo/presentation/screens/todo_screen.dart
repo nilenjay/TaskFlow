@@ -260,6 +260,7 @@ class _TodoScreenState extends State<TodoScreen> {
                         description: text,
                         dueDate: selectedDueDate,
                         reminderTime: selectedReminderTime,
+                        startReminder: selectedStartReminder,
                       ),
                     );
                   },
@@ -478,6 +479,23 @@ class TodoTile extends StatelessWidget {
                                 const SizedBox(width: 4),
                                 Text(
                                   _formatTime(todo.reminderTime!),
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                          if (todo.startReminder != null)
+                            Row(
+                              children: [
+                                const Icon(Icons.play_arrow,
+                                    size: 14,
+                                    color: Colors.grey),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _formatTime(todo.startReminder!),
                                   style: const TextStyle(
                                     color: Colors.grey,
                                     fontSize: 12,

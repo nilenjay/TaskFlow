@@ -8,8 +8,7 @@ import 'package:todo_app/features/todo/presentation/bloc/todo_state.dart';
 
 import '../../data/models/todo_filter.dart';
 
-class TodoBloc extends Bloc<TodoEvent,TodoState>{
-
+class TodoBloc extends Bloc<TodoEvent, TodoState> {
   final TodoLocalDataSource _localDataSource;
 
   TodoBloc(this._localDataSource) : super(const TodoInitial()) {
@@ -26,8 +25,6 @@ class TodoBloc extends Bloc<TodoEvent,TodoState>{
   }
 
   Future<void> _addTodo(AddTodo event, Emitter<TodoState> emit) async {
-    print("AddTodo event triggered");
-
     List<TodoModel> oldTodos = [];
     TodoFilter currentFilter = TodoFilter.all;
     String currentSearch = '';
@@ -49,17 +46,13 @@ class TodoBloc extends Bloc<TodoEvent,TodoState>{
       isComplete: false,
       dueDate: event.dueDate,
       reminderTime: event.reminderTime,
+      startReminder: event.startReminder,
     );
 
     final newTodos = [...oldTodos, newTodo];
 
-    print("Old todos count: ${oldTodos.length}");
-    print("New todos count: ${newTodos.length}");
-
     await _localDataSource.saveTodos(newTodos);
     await _scheduleReminder(newTodo);
-
-    print("Emitting TodoLoaded state");
 
     emit(TodoLoaded(
       todos: newTodos,
@@ -67,25 +60,29 @@ class TodoBloc extends Bloc<TodoEvent,TodoState>{
       searchQuery: currentSearch,
     ));
   }
+
   Future<void> _deleteTodo(DeleteTodo event, Emitter<TodoState> emit) async {
-    List<TodoModel> oldTodos=[];
-    if(state is TodoLoaded){
-      oldTodos=(state as TodoLoaded).todos;
-    }
-    else if(state is TodoDeleted){
-      oldTodos=(state as TodoDeleted).todos;
+    List<TodoModel> oldTodos = [];
+
+    if (state is TodoLoaded) {
+      oldTodos = (state as TodoLoaded).todos;
+    } else if (state is TodoDeleted) {
+      oldTodos = (state as TodoDeleted).todos;
     }
 
-    final deletedTodo=oldTodos.firstWhere((todo)=>todo.id==event.id);
-    final newTodos=oldTodos.where((todo)=> todo.id!=event.id).toList();
+    final deletedTodo = oldTodos.firstWhere((todo) => todo.id == event.id);
+    final newTodos = oldTodos.where((todo) => todo.id != event.id).toList();
 
     await _localDataSource.saveTodos(newTodos);
+    await NotificationService.instance.cancelNotification(event.id.hashCode);
     await NotificationService.instance
-        .cancelNotification(event.id.hashCode);
+        .cancelNotification((event.id + "_start").hashCode);
+
     emit(TodoDeleted(deletedTodo: deletedTodo, todos: newTodos));
   }
 
-  Future<void> _toggleTodoStatus(ToggleTodoStatus event,Emitter<TodoState> emit) async {
+  Future<void> _toggleTodoStatus(
+      ToggleTodoStatus event, Emitter<TodoState> emit) async {
     List<TodoModel> oldTodos = [];
 
     if (state is TodoLoaded) {
@@ -95,31 +92,33 @@ class TodoBloc extends Bloc<TodoEvent,TodoState>{
     }
 
     final toggled = oldTodos.firstWhere((t) => t.id == event.id);
-    final newTodos = oldTodos.map((todo) => todo.id == event.id ? todo.copyWith(isComplete: !todo.isComplete) : todo).toList();
+    final newTodos = oldTodos
+        .map((todo) => todo.id == event.id
+        ? todo.copyWith(isComplete: !todo.isComplete)
+        : todo)
+        .toList();
     final bool willBeComplete = !toggled.isComplete;
 
     if (willBeComplete) {
-      // became completed → cancel reminder
+      await NotificationService.instance.cancelNotification(event.id.hashCode);
       await NotificationService.instance
-          .cancelNotification(event.id.hashCode);
+          .cancelNotification((event.id + "_start").hashCode);
     } else {
-      // became incomplete → reschedule reminder
-      final updatedTodo = toggled.copyWith(
-        isComplete: willBeComplete,
-      );
-
+      final updatedTodo = toggled.copyWith(isComplete: willBeComplete);
       await _scheduleReminder(updatedTodo);
     }
+
     await _localDataSource.saveTodos(newTodos);
     emit(TodoLoaded(todos: newTodos));
   }
 
-  Future<void> _loadTodos(LoadTodos event,Emitter<TodoState> emit) async {
+  Future<void> _loadTodos(LoadTodos event, Emitter<TodoState> emit) async {
     final todos = await _localDataSource.loadTodos();
     emit(TodoLoaded(todos: todos));
   }
 
-  Future<void> _restoreTodo(RestoreTodo event,Emitter<TodoState> emit) async {
+  Future<void> _restoreTodo(
+      RestoreTodo event, Emitter<TodoState> emit) async {
     List<TodoModel> oldTodos = [];
 
     if (state is TodoLoaded) {
@@ -129,15 +128,13 @@ class TodoBloc extends Bloc<TodoEvent,TodoState>{
     }
 
     final newTodos = [...oldTodos, event.todo];
-
     await _localDataSource.saveTodos(newTodos);
-
     emit(TodoLoaded(todos: newTodos));
   }
 
-  Future<void> _changeFilter(ChangeFilter event,Emitter<TodoState> emit) async {
+  Future<void> _changeFilter(
+      ChangeFilter event, Emitter<TodoState> emit) async {
     List<TodoModel> oldTodos = [];
-    TodoFilter currentFilter = event.filter;
 
     if (state is TodoLoaded) {
       oldTodos = (state as TodoLoaded).todos;
@@ -145,10 +142,11 @@ class TodoBloc extends Bloc<TodoEvent,TodoState>{
       oldTodos = (state as TodoDeleted).todos;
     }
 
-    emit(TodoLoaded(todos: oldTodos,filter: currentFilter,));
+    emit(TodoLoaded(todos: oldTodos, filter: event.filter));
   }
 
-  Future<void> _searchTodos(SearchTodos event,Emitter<TodoState> emit) async {
+  Future<void> _searchTodos(
+      SearchTodos event, Emitter<TodoState> emit) async {
     List<TodoModel> oldTodos = [];
     TodoFilter currentFilter = TodoFilter.all;
 
@@ -160,16 +158,26 @@ class TodoBloc extends Bloc<TodoEvent,TodoState>{
       currentFilter = (state as TodoDeleted).filter;
     }
 
-    emit(TodoLoaded(todos: oldTodos,filter: currentFilter,searchQuery: event.query));
+    emit(TodoLoaded(
+        todos: oldTodos, filter: currentFilter, searchQuery: event.query));
   }
 
   Future<void> _scheduleReminder(TodoModel todo) async {
 
-    DateTime? scheduledTime;
-
-    if (todo.dueDate != null) {
+    // ── Start reminder ────────────────────────────────────────────────────
+    if (todo.startReminder != null) {
+      // ✅ User explicitly set a start reminder — use it directly
+      if (todo.startReminder!.isAfter(DateTime.now())) {
+        await NotificationService.instance.scheduleNotification(
+          id: (todo.id + "_start").hashCode,
+          title: "Start Task",
+          body: "Start working on: ${todo.description}",
+          scheduledTime: todo.startReminder!,
+        );
+      }
+    } else if (todo.dueDate != null) {
+      // ✅ No custom start reminder — fall back to smart calculation
       final startTime = _calculateSmartStartReminder(todo.dueDate);
-
       if (startTime != null && startTime.isAfter(DateTime.now())) {
         await NotificationService.instance.scheduleNotification(
           id: (todo.id + "_start").hashCode,
@@ -180,60 +188,33 @@ class TodoBloc extends Bloc<TodoEvent,TodoState>{
       }
     }
 
-    /// 1️⃣ If user explicitly set reminder → use it
+    // ── Due reminder ──────────────────────────────────────────────────────
+    DateTime? scheduledTime;
+
     if (todo.reminderTime != null) {
+      // ✅ User explicitly set a reminder time
       scheduledTime = todo.reminderTime;
-    }
-
-    /// 2️⃣ Smart reminder logic
-    else if (todo.dueDate != null) {
-
+    } else if (todo.dueDate != null) {
+      // ✅ Smart reminder based on due date
       final now = DateTime.now();
       final due = todo.dueDate!;
-
       final difference = due.difference(now).inDays;
 
-      /// Due today → remind 30 minutes before
       if (difference == 0) {
         scheduledTime = due.subtract(const Duration(minutes: 30));
-      }
-
-      /// Due tomorrow → remind today at 8 PM
-      else if (difference == 1) {
-        scheduledTime = DateTime(
-          now.year,
-          now.month,
-          now.day,
-          20,
-          0,
-        );
-      }
-
-      /// Due later → remind 1 day before at 8 PM
-      else if (difference > 1) {
+      } else if (difference == 1) {
+        scheduledTime = DateTime(now.year, now.month, now.day, 20, 0);
+      } else if (difference > 1) {
         final reminderDay = due.subtract(const Duration(days: 1));
-
         scheduledTime = DateTime(
-          reminderDay.year,
-          reminderDay.month,
-          reminderDay.day,
-          20,
-          0,
-        );
+            reminderDay.year, reminderDay.month, reminderDay.day, 20, 0);
       }
     }
 
-    /// 🚫 Nothing to schedule
     if (scheduledTime == null) return;
-
-    /// 🚫 Don't schedule past notifications
     if (scheduledTime.isBefore(DateTime.now())) return;
 
-    /// Cancel existing notification
-    await NotificationService.instance
-        .cancelNotification(todo.id.hashCode);
-
-    /// Schedule new notification
+    await NotificationService.instance.cancelNotification(todo.id.hashCode);
     await NotificationService.instance.scheduleNotification(
       id: todo.id.hashCode,
       title: "Todo Reminder",
@@ -241,8 +222,9 @@ class TodoBloc extends Bloc<TodoEvent,TodoState>{
       scheduledTime: scheduledTime,
     );
   }
-  Future<void> _editTodo(EditTodo event, Emitter<TodoState> emit)async {
-    List<TodoModel>oldTodos=[];
+
+  Future<void> _editTodo(EditTodo event, Emitter<TodoState> emit) async {
+    List<TodoModel> oldTodos = [];
 
     if (state is TodoLoaded) {
       oldTodos = (state as TodoLoaded).todos;
@@ -253,20 +235,19 @@ class TodoBloc extends Bloc<TodoEvent,TodoState>{
     TodoFilter currentFilter = TodoFilter.all;
     String currentSearch = '';
 
-    final currentState = state;
-
-    if (currentState is TodoLoaded) {
-      currentFilter = currentState.filter;
-      currentSearch = currentState.searchQuery;
-    } else if (currentState is TodoDeleted) {
-      currentFilter = currentState.filter;
-      currentSearch = currentState.searchQuery;
+    if (state is TodoLoaded) {
+      currentFilter = (state as TodoLoaded).filter;
+      currentSearch = (state as TodoLoaded).searchQuery;
+    } else if (state is TodoDeleted) {
+      currentFilter = (state as TodoDeleted).filter;
+      currentSearch = (state as TodoDeleted).searchQuery;
     }
 
-    final oldTodo =
-    oldTodos.firstWhere((t) => t.id == event.updatedTodo.id);
+    final oldTodo = oldTodos.firstWhere((t) => t.id == event.updatedTodo.id);
 
     await NotificationService.instance.cancelNotification(oldTodo.id.hashCode);
+    await NotificationService.instance
+        .cancelNotification((oldTodo.id + "_start").hashCode);
 
     final newTodos = oldTodos.map((todo) {
       if (todo.id == event.updatedTodo.id) return event.updatedTodo;
@@ -292,23 +273,17 @@ class TodoBloc extends Bloc<TodoEvent,TodoState>{
     final now = DateTime.now();
     final difference = dueDate.difference(now).inDays;
 
-    /// Due today
-    if (difference <= 0) {
-      return now;
-    }
+    if (difference <= 0) return now;
 
-    /// Due tomorrow
     if (difference == 1) {
       return DateTime(now.year, now.month, now.day, 18, 0);
     }
 
-    /// Due in 2-3 days
     if (difference <= 3) {
       final tomorrow = now.add(const Duration(days: 1));
       return DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 18, 0);
     }
 
-    /// Due in 4+ days
     final startDay = dueDate.subtract(const Duration(days: 2));
     return DateTime(startDay.year, startDay.month, startDay.day, 18, 0);
   }
