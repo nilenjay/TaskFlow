@@ -32,31 +32,22 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Todo App',
+      title: "Todo App",
+
+      themeMode: ThemeMode.system,
 
       theme: ThemeData(
+        brightness: Brightness.light,
         primaryColor: const Color(0xFF6366F1),
-
         scaffoldBackgroundColor: const Color(0xFFF9FAFB),
-
-        appBarTheme: const AppBarTheme(
-          elevation: 0,
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          centerTitle: true,
-        ),
-
-        floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: Color(0xFF6366F1),
-        ),
-
-        cardTheme: CardThemeData(
-          elevation: 1,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
       ),
+
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: const Color(0xFF6366F1),
+        scaffoldBackgroundColor: const Color(0xFF121212),
+      ),
+
       home: const TodoScreen(),
     );
   }

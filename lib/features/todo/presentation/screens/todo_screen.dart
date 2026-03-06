@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:todo_app/features/todo/data/models/todo_filter.dart';
-import 'package:todo_app/features/todo/data/models/todo_model.dart';
-import 'package:todo_app/features/todo/presentation/bloc/todo_bloc.dart';
-import 'package:todo_app/features/todo/presentation/bloc/todo_event.dart';
-import 'package:todo_app/features/todo/presentation/bloc/todo_state.dart';
+
+import '../../data/models/todo_filter.dart';
+import '../../data/models/todo_model.dart';
+import '../bloc/todo_bloc.dart';
+import '../bloc/todo_event.dart';
+import '../bloc/todo_state.dart';
 
 class TodoScreen extends StatefulWidget {
   const TodoScreen({super.key});
@@ -15,57 +16,23 @@ class TodoScreen extends StatefulWidget {
 
 class _TodoScreenState extends State<TodoScreen> {
 
-  List<TodoModel> _extractTodos(TodoState state) {
-    if (state is TodoLoaded) return state.todos;
-    if (state is TodoDeleted) return state.todos;
-    return [];
-  }
-
-  List<TodoModel> _applyFilters(
-      List<TodoModel> todos,
-      TodoFilter filter,
-      String searchQuery,
-      ) {
-    List<TodoModel> filtered = List.from(todos);
-
-    switch (filter) {
-      case TodoFilter.active:
-        filtered = filtered.where((t) => !t.isComplete).toList();
-        break;
-
-      case TodoFilter.completed:
-        filtered = filtered.where((t) => t.isComplete).toList();
-        break;
-
-      case TodoFilter.all:
-        break;
-    }
-
-    if (searchQuery.isNotEmpty) {
-      filtered = filtered
-          .where((t) =>
-          t.description.toLowerCase().contains(searchQuery.toLowerCase()))
-          .toList();
-    }
-
-    return filtered;
-  }
-
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Todo List'),
+        title: const Text("My Tasks"),
       ),
 
       body: BlocConsumer<TodoBloc, TodoState>(
         listener: (context, state) {
+
           if (state is TodoDeleted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text('Todo deleted'),
+                content: const Text("Todo deleted"),
                 action: SnackBarAction(
-                  label: 'UNDO',
+                  label: "UNDO",
                   onPressed: () {
                     context.read<TodoBloc>().add(
                       RestoreTodo(todo: state.deletedTodo),
@@ -78,198 +45,466 @@ class _TodoScreenState extends State<TodoScreen> {
         },
 
         builder: (context, state) {
-          final todos = _extractTodos(state);
 
+          List<TodoModel> todos = [];
           TodoFilter filter = TodoFilter.all;
-          String searchQuery = '';
+          String searchQuery = "";
 
           if (state is TodoLoaded) {
-            filter = state.filter;
-            searchQuery = state.searchQuery;
-          } else if (state is TodoDeleted) {
+            todos = state.todos;
             filter = state.filter;
             searchQuery = state.searchQuery;
           }
 
-          final filteredTodos =
-          _applyFilters(todos, filter, searchQuery);
+          if (state is TodoDeleted) {
+            todos = state.todos;
+            filter = state.filter;
+            searchQuery = state.searchQuery;
+          }
+
+          /// FILTER
+
+          List<TodoModel> filtered = List.from(todos);
+
+          switch (filter) {
+            case TodoFilter.active:
+              filtered = todos.where((t) => !t.isComplete).toList();
+              break;
+
+            case TodoFilter.completed:
+              filtered = todos.where((t) => t.isComplete).toList();
+              break;
+
+            case TodoFilter.all:
+              filtered = todos;
+              break;
+          }
+
+          /// SEARCH
+
+          if (searchQuery.isNotEmpty) {
+            filtered = filtered.where((t) =>
+                t.description
+                    .toLowerCase()
+                    .contains(searchQuery.toLowerCase()))
+                .toList();
+          }
+
+          /// SECTIONING
+
+          final now = DateTime.now();
+
+          List<TodoModel> completed = [];
+          List<TodoModel> overdue = [];
+          List<TodoModel> today = [];
+          List<TodoModel> tomorrow = [];
+          List<TodoModel> upcoming = [];
+
+          for (final todo in filtered) {
+
+            if (todo.isComplete) {
+              completed.add(todo);
+              continue;
+            }
+
+            if (todo.dueDate == null) {
+              upcoming.add(todo);
+              continue;
+            }
+
+            final due = todo.dueDate!;
+
+            if (due.isBefore(now)) {
+              overdue.add(todo);
+            }
+
+            else if (due.year == now.year &&
+                due.month == now.month &&
+                due.day == now.day) {
+              today.add(todo);
+            }
+
+            else if (due.year ==
+                now.add(const Duration(days: 1)).year &&
+                due.month ==
+                    now.add(const Duration(days: 1)).month &&
+                due.day ==
+                    now.add(const Duration(days: 1)).day) {
+              tomorrow.add(todo);
+            }
+
+            else {
+              upcoming.add(todo);
+            }
+          }
 
           return Column(
             children: [
-              const TodoSearchBar(),
-              TodoFilterChips(currentFilter: filter),
-              Expanded(
-                child: TodoList(todos: filteredTodos),
+
+              /// SEARCH
+
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                child: TextField(
+                  onChanged: (value) {
+                    context.read<TodoBloc>().add(
+                      SearchTodos(query: value),
+                    );
+                  },
+                  decoration: InputDecoration(
+                    hintText: "Search todos...",
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
               ),
+
+              /// FILTER CHIPS
+
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+
+                    ChoiceChip(
+                      label: const Text("All"),
+                      selected: filter == TodoFilter.all,
+                      onSelected: (_) {
+                        context.read<TodoBloc>().add(
+                          ChangeFilter(filter: TodoFilter.all),
+                        );
+                      },
+                    ),
+
+                    ChoiceChip(
+                      label: const Text("Active"),
+                      selected: filter == TodoFilter.active,
+                      onSelected: (_) {
+                        context.read<TodoBloc>().add(
+                          ChangeFilter(filter: TodoFilter.active),
+                        );
+                      },
+                    ),
+
+                    ChoiceChip(
+                      label: const Text("Completed"),
+                      selected: filter == TodoFilter.completed,
+                      onSelected: (_) {
+                        context.read<TodoBloc>().add(
+                          ChangeFilter(filter: TodoFilter.completed),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              Expanded(
+                child: ListView(
+                  children: [
+
+                    _buildSection("⚠ OVERDUE", overdue),
+                    _buildSection("📅 TODAY", today),
+                    _buildSection("🟡 TOMORROW", tomorrow),
+                    _buildSection("📦 UPCOMING", upcoming),
+                    _buildSection("✔ COMPLETED", completed),
+
+                    const SizedBox(height: 80),
+                  ],
+                ),
+              )
             ],
           );
         },
       ),
 
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showAddTodoDialog(context);
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: FloatingActionButton.extended(
+        icon: const Icon(Icons.add),
+        label: const Text("Add Task"),
+        onPressed: _showAddDialog,
       ),
     );
   }
 
-  void _showAddTodoDialog(BuildContext context) {
-    final controller = TextEditingController();
+  /// SECTION
 
-    DateTime? selectedDueDate;
-    DateTime? selectedReminderTime;
-    DateTime? selectedStartReminder;
+  Widget _buildSection(String title, List<TodoModel> todos) {
+
+    if (todos.isEmpty) return const SizedBox();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+
+        ...todos.map((todo) => _buildTodoTile(todo)),
+      ],
+    );
+  }
+
+  /// TODO TILE
+
+  Widget _buildTodoTile(TodoModel todo) {
+
+    return Dismissible(
+      key: ValueKey(todo.id),
+
+      background: Container(
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        color: Colors.blue,
+        child: const Icon(Icons.edit, color: Colors.white),
+      ),
+
+      secondaryBackground: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        color: Colors.red,
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+
+      confirmDismiss: (direction) async {
+
+        if (direction == DismissDirection.endToStart) {
+
+          context.read<TodoBloc>().add(
+            DeleteTodo(id: todo.id),
+          );
+
+          return true;
+        }
+
+        else {
+
+          _showEditDialog(todo);
+
+          return false;
+        }
+      },
+
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: 12, vertical: 6),
+        child: Card(
+          child: ListTile(
+
+            leading: Checkbox(
+              value: todo.isComplete,
+              onChanged: (_) {
+                context.read<TodoBloc>().add(
+                  ToggleTodoStatus(id: todo.id),
+                );
+              },
+            ),
+
+            title: Text(
+              todo.description,
+              style: TextStyle(
+                decoration: todo.isComplete
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+                color: todo.isComplete ? Colors.grey : Colors.black,
+              ),
+            ),
+
+            subtitle: Wrap(
+              spacing: 10,
+              runSpacing: 4,
+              children: [
+
+                if (todo.dueDate != null)
+                  _infoIcon(Icons.calendar_today, _formatDate(todo.dueDate!)),
+
+                if (todo.startReminder != null)
+                  _infoIcon(Icons.play_arrow, _formatTime(todo.startReminder!)),
+
+                if (todo.reminderTime != null)
+                  _infoIcon(Icons.notifications, _formatTime(todo.reminderTime!)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _infoIcon(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: Colors.grey),
+        const SizedBox(width: 4),
+        Text(text,
+            style: const TextStyle(
+                fontSize: 12,
+                color: Colors.grey)),
+      ],
+    );
+  }
+
+  /// ADD DIALOG
+
+  void _showAddDialog() {
+    _showEditDialog(null);
+  }
+
+  /// EDIT / ADD DIALOG
+
+  void _showEditDialog(TodoModel? todo) {
+
+    final controller =
+    TextEditingController(text: todo?.description ?? "");
+
+    DateTime? dueDate = todo?.dueDate;
+    DateTime? reminder = todo?.reminderTime;
+    DateTime? startReminder = todo?.startReminder;
 
     showDialog(
       context: context,
       builder: (dialogContext) {
+
         return StatefulBuilder(
           builder: (context, setState) {
+
             return AlertDialog(
-              title: const Text('Add Todo'),
+              title: Text(todo == null ? "Add Todo" : "Edit Todo"),
+
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+
                   TextField(
                     controller: controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter description',
-                    ),
+                    decoration:
+                    const InputDecoration(hintText: "Description"),
                   ),
 
                   const SizedBox(height: 12),
 
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.calendar_today),
-                    label: const Text('Pick Due Date (optional)'),
+                  ElevatedButton(
+                    child: const Text("Pick Due Date"),
                     onPressed: () async {
+
                       final picked = await showDatePicker(
-                        context: dialogContext,
+                        context: context,
                         initialDate: DateTime.now(),
-                        firstDate: DateTime.now()
-                            .subtract(const Duration(days: 3650)),
-                        lastDate:
-                        DateTime.now().add(const Duration(days: 3650)),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
                       );
 
                       if (picked != null) {
-                        setState(() {
-                          selectedDueDate = picked;
-                        });
+                        setState(() => dueDate = picked);
                       }
                     },
                   ),
 
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.alarm),
-                    label: const Text('Pick Reminder Time (optional)'),
+                  ElevatedButton(
+                    child: const Text("Pick Reminder"),
                     onPressed: () async {
-                      final timeOfDay = await showTimePicker(
-                        context: dialogContext,
+
+                      final time = await showTimePicker(
+                        context: context,
                         initialTime: TimeOfDay.now(),
                       );
 
-                      if (timeOfDay != null) {
-                        final baseDate =
-                            selectedDueDate ?? DateTime.now();
+                      if (time != null) {
 
-                        final reminder = DateTime(
-                          baseDate.year,
-                          baseDate.month,
-                          baseDate.day,
-                          timeOfDay.hour,
-                          timeOfDay.minute,
-                        );
+                        final base = dueDate ?? DateTime.now();
 
                         setState(() {
-                          selectedReminderTime = reminder;
+                          reminder = DateTime(
+                              base.year,
+                              base.month,
+                              base.day,
+                              time.hour,
+                              time.minute);
                         });
                       }
                     },
                   ),
 
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Pick Start Reminder (optional)'),
+                  ElevatedButton(
+                    child: const Text("Pick Start Reminder"),
                     onPressed: () async {
 
-                      final timeOfDay = await showTimePicker(
-                        context: dialogContext,
+                      final time = await showTimePicker(
+                        context: context,
                         initialTime: TimeOfDay.now(),
                       );
 
-                      if (timeOfDay != null) {
+                      if (time != null) {
 
-                        final baseDate = selectedDueDate ?? DateTime.now();
-
-                        final startReminder = DateTime(
-                          baseDate.year,
-                          baseDate.month,
-                          baseDate.day,
-                          timeOfDay.hour,
-                          timeOfDay.minute,
-                        );
+                        final base = dueDate ?? DateTime.now();
 
                         setState(() {
-                          selectedStartReminder = startReminder;
+                          startReminder = DateTime(
+                              base.year,
+                              base.month,
+                              base.day,
+                              time.hour,
+                              time.minute);
                         });
                       }
                     },
                   ),
-
-                  if (selectedReminderTime != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        'Reminder: ${selectedReminderTime!.toLocal()}',
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  if (selectedStartReminder != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'Start: ${selectedStartReminder!.toLocal()}',
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ],
-
-                  if (selectedDueDate != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        'Due: ${selectedDueDate!.toLocal().toString().split(' ')[0]}',
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                    ),
                 ],
               ),
 
               actions: [
+
                 TextButton(
-                  onPressed: () {
-                    final text = controller.text.trim();
-
-                    if (text.isEmpty) return;
-
-                    Navigator.pop(dialogContext);
-
-                    context.read<TodoBloc>().add(
-                      AddTodo(
-                        description: text,
-                        dueDate: selectedDueDate,
-                        reminderTime: selectedReminderTime,
-                        startReminder: selectedStartReminder,
-                      ),
-                    );
-                  },
-                  child: const Text('Add'),
+                  child: const Text("Cancel"),
+                  onPressed: () => Navigator.pop(context),
                 ),
 
                 TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancel'),
+                  child: const Text("Save"),
+                  onPressed: () {
+
+                    final text = controller.text.trim();
+                    if (text.isEmpty) return;
+
+                    if (todo == null) {
+
+                      context.read<TodoBloc>().add(
+                        AddTodo(
+                          description: text,
+                          dueDate: dueDate,
+                          reminderTime: reminder,
+                          startReminder: startReminder,
+                        ),
+                      );
+                    }
+
+                    else {
+
+                      context.read<TodoBloc>().add(
+                        EditTodo(
+                          updatedTodo: todo.copyWith(
+                            description: text,
+                            dueDate: dueDate,
+                            reminderTime: reminder,
+                            startReminder: startReminder,
+                          ),
+                        ),
+                      );
+                    }
+
+                    Navigator.pop(context);
+                  },
                 ),
               ],
             );
@@ -278,414 +513,15 @@ class _TodoScreenState extends State<TodoScreen> {
       },
     );
   }
-}
 
-class TodoSearchBar extends StatelessWidget {
-  const TodoSearchBar({super.key});
+  String _formatDate(DateTime date) =>
+      "${date.day}/${date.month}/${date.year}";
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      child: TextField(
-        onChanged: (value) {
-          context.read<TodoBloc>().add(
-            SearchTodos(query: value),
-          );
-        },
-        decoration: InputDecoration(
-          hintText: 'Search todos...',
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
-    );
+  String _formatTime(DateTime time) {
+
+    final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
+    final period = time.hour >= 12 ? "PM" : "AM";
+
+    return "$hour:${time.minute.toString().padLeft(2, '0')} $period";
   }
-}
-
-class TodoFilterChips extends StatelessWidget {
-  final TodoFilter currentFilter;
-
-  const TodoFilterChips({super.key, required this.currentFilter});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          ChoiceChip(
-            label: const Text('All'),
-            selected: currentFilter == TodoFilter.all,
-            onSelected: (_) {
-              context.read<TodoBloc>().add(
-                ChangeFilter(filter: TodoFilter.all),
-              );
-            },
-          ),
-          ChoiceChip(
-            label: const Text('Active'),
-            selected: currentFilter == TodoFilter.active,
-            onSelected: (_) {
-              context.read<TodoBloc>().add(
-                ChangeFilter(filter: TodoFilter.active),
-              );
-            },
-          ),
-          ChoiceChip(
-            label: const Text('Completed'),
-            selected: currentFilter == TodoFilter.completed,
-            onSelected: (_) {
-              context.read<TodoBloc>().add(
-                ChangeFilter(filter: TodoFilter.completed),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class TodoList extends StatelessWidget {
-  final List<TodoModel> todos;
-
-  const TodoList({super.key, required this.todos});
-
-  @override
-  Widget build(BuildContext context) {
-    if (todos.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.task_alt, size: 64, color: Colors.grey),
-            SizedBox(height: 12),
-            Text('No todos yet…'),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      itemCount: todos.length,
-      itemBuilder: (context, index) {
-        return TodoTile(todo: todos[index]);
-      },
-    );
-  }
-}
-
-class TodoTile extends StatelessWidget {
-  final TodoModel todo;
-
-  const TodoTile({super.key, required this.todo});
-
-  @override
-  Widget build(BuildContext context) {
-    final isOverdue = todo.dueDate != null &&
-        todo.dueDate!.isBefore(DateTime.now()) &&
-        !todo.isComplete;
-
-    return Dismissible(
-      key: ValueKey(todo.id),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        color: Colors.red,
-        child: const Icon(Icons.delete, color: Colors.white),
-      ),
-      onDismissed: (_) {
-        context.read<TodoBloc>().add(DeleteTodo(id: todo.id));
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Card(
-          margin: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 6,
-          ),
-
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-
-            child: Row(
-              children: [
-
-                Checkbox(
-                  value: todo.isComplete,
-                  onChanged: (_) {
-                    context.read<TodoBloc>().add(
-                      ToggleTodoStatus(id: todo.id),
-                    );
-                  },
-                ),
-
-                const SizedBox(width: 8),
-
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-
-                      Text(
-                        todo.description,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          decoration: todo.isComplete
-                              ? TextDecoration.lineThrough
-                              : TextDecoration.none,
-                          color: todo.isComplete
-                              ? Colors.grey
-                              : Colors.black,
-                        ),
-                      ),
-
-                      const SizedBox(height: 6),
-
-                      Row(
-                        children: [
-
-                          if (todo.dueDate != null)
-                            Row(
-                              children: [
-                                const Icon(Icons.calendar_today,
-                                    size: 14,
-                                    color: Colors.grey),
-                                const SizedBox(width: 4),
-                                Text(
-                                  _formatDate(todo.dueDate!),
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                          const SizedBox(width: 12),
-
-                          if (todo.reminderTime != null)
-                            Row(
-                              children: [
-                                const Icon(Icons.notifications,
-                                    size: 14,
-                                    color: Colors.grey),
-                                const SizedBox(width: 4),
-                                Text(
-                                  _formatTime(todo.reminderTime!),
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                          if (todo.startReminder != null)
-                            Row(
-                              children: [
-                                const Icon(Icons.play_arrow,
-                                    size: 14,
-                                    color: Colors.grey),
-                                const SizedBox(width: 4),
-                                Text(
-                                  _formatTime(todo.startReminder!),
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () {
-                    context.read<TodoBloc>().add(
-                      DeleteTodo(id: todo.id),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        )
-      ),
-    );
-  }
-}
-
-void showEditTodoDialog(BuildContext context, TodoModel todo) {
-
-  final controller = TextEditingController(text: todo.description);
-
-  DateTime? selectedDueDate = todo.dueDate;
-  DateTime? selectedReminderTime = todo.reminderTime;
-
-  showDialog(
-    context: context,
-    builder: (dialogContext) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-
-          return AlertDialog(
-            title: const Text("Edit Todo"),
-
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-
-                TextField(
-                  controller: controller,
-                  decoration: const InputDecoration(
-                    hintText: "Edit description",
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.calendar_today),
-                  label: const Text("Change Due Date"),
-                  onPressed: () async {
-
-                    final picked = await showDatePicker(
-                      context: dialogContext,
-                      initialDate: selectedDueDate ?? DateTime.now(),
-                      firstDate: DateTime.now()
-                          .subtract(const Duration(days: 3650)),
-                      lastDate:
-                      DateTime.now().add(const Duration(days: 3650)),
-                    );
-
-                    if (picked != null) {
-                      setState(() {
-                        selectedDueDate = picked;
-                      });
-                    }
-                  },
-                ),
-
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.alarm),
-                  label: const Text("Change Reminder"),
-                  onPressed: () async {
-
-                    final timeOfDay = await showTimePicker(
-                      context: dialogContext,
-                      initialTime: TimeOfDay.now(),
-                    );
-
-                    if (timeOfDay != null) {
-
-                      final baseDate =
-                          selectedDueDate ?? DateTime.now();
-
-                      final reminder = DateTime(
-                        baseDate.year,
-                        baseDate.month,
-                        baseDate.day,
-                        timeOfDay.hour,
-                        timeOfDay.minute,
-                      );
-
-                      setState(() {
-                        selectedReminderTime = reminder;
-                      });
-                    }
-                  },
-                ),
-
-                if (selectedReminderTime != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      "Reminder: ${selectedReminderTime!.toLocal()}",
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ),
-
-                if (selectedDueDate != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      "Due: ${selectedDueDate!.toLocal().toString().split(' ')[0]}",
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ),
-              ],
-            ),
-
-            actions: [
-
-              TextButton(
-                onPressed: () {
-
-                  final text = controller.text.trim();
-
-                  if (text.isEmpty) return;
-
-                  final updatedTodo = todo.copyWith(
-                    description: text,
-                    dueDate: selectedDueDate,
-                    reminderTime: selectedReminderTime,
-                  );
-
-                  Navigator.pop(dialogContext);
-
-                  context.read<TodoBloc>().add(
-                    EditTodo(updatedTodo: updatedTodo),
-                  );
-                },
-                child: const Text("Save"),
-              ),
-
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text("Cancel"),
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
-}
-
-String _formatDate(DateTime date) {
-  final now = DateTime.now();
-
-  if (date.day == now.day &&
-      date.month == now.month &&
-      date.year == now.year) {
-    return "Today";
-  }
-
-  final tomorrow = now.add(const Duration(days: 1));
-
-  if (date.day == tomorrow.day &&
-      date.month == tomorrow.month &&
-      date.year == tomorrow.year) {
-    return "Tomorrow";
-  }
-
-  return "${date.day}/${date.month}/${date.year}";
-}
-
-String _formatTime(DateTime time) {
-  final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
-  final period = time.hour >= 12 ? "PM" : "AM";
-
-  return "$hour:${time.minute.toString().padLeft(2, '0')} $period";
 }
