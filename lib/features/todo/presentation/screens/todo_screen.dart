@@ -120,6 +120,7 @@ class _TodoScreenState extends State<TodoScreen> {
 
     DateTime? selectedDueDate;
     DateTime? selectedReminderTime;
+    DateTime? selectedStartReminder;
 
     showDialog(
       context: context,
@@ -189,6 +190,35 @@ class _TodoScreenState extends State<TodoScreen> {
                     },
                   ),
 
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.play_arrow),
+                    label: const Text('Pick Start Reminder (optional)'),
+                    onPressed: () async {
+
+                      final timeOfDay = await showTimePicker(
+                        context: dialogContext,
+                        initialTime: TimeOfDay.now(),
+                      );
+
+                      if (timeOfDay != null) {
+
+                        final baseDate = selectedDueDate ?? DateTime.now();
+
+                        final startReminder = DateTime(
+                          baseDate.year,
+                          baseDate.month,
+                          baseDate.day,
+                          timeOfDay.hour,
+                          timeOfDay.minute,
+                        );
+
+                        setState(() {
+                          selectedStartReminder = startReminder;
+                        });
+                      }
+                    },
+                  ),
+
                   if (selectedReminderTime != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
@@ -197,6 +227,13 @@ class _TodoScreenState extends State<TodoScreen> {
                         style: const TextStyle(color: Colors.grey),
                       ),
                     ),
+                  if (selectedStartReminder != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Start: ${selectedStartReminder!.toLocal()}',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ],
 
                   if (selectedDueDate != null)
                     Padding(
