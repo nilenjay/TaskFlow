@@ -15,15 +15,17 @@ class AddTodo extends TodoEvent{
   final DateTime? dueDate;
   final DateTime? reminderTime;
   final DateTime? startReminder;
+  final int priority;
   const AddTodo({
     required this.description,
     this.dueDate,
     this.reminderTime,
     this.startReminder,
+    this.priority=2,
 });
   @override
   // TODO: implement props
-  List<Object?> get props => [description,dueDate,reminderTime,startReminder];
+  List<Object?> get props => [description,dueDate,reminderTime,startReminder,priority];
 }
 
 class DeleteTodo extends TodoEvent{
