@@ -15,6 +15,61 @@ class TodoScreen extends StatefulWidget {
 }
 
 class _TodoScreenState extends State<TodoScreen> {
+  bool _showCompleted = false;
+
+  Widget _buildCompletedSection(List<TodoModel> todos) {
+
+    if (todos.isEmpty) return const SizedBox();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+
+        InkWell(
+          onTap: () {
+            setState(() {
+              _showCompleted = !_showCompleted;
+            });
+          },
+
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+            child: Row(
+              children: [
+
+                const Text(
+                  "✔ COMPLETED",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
+
+                const SizedBox(width: 6),
+
+                Text(
+                  "(${todos.length})",
+                  style: const TextStyle(color: Colors.grey),
+                ),
+
+                const Spacer(),
+
+                Icon(
+                  _showCompleted
+                      ? Icons.expand_less
+                      : Icons.expand_more,
+                  color: Colors.grey,
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        if (_showCompleted)
+          ...todos.map((todo) => _buildTodoTile(todo)),
+      ],
+    );
+  }
 
   Widget buildProgressIndicator(List<TodoModel> todos) {
     final total = todos.length;
@@ -245,7 +300,7 @@ class _TodoScreenState extends State<TodoScreen> {
                     _buildSection("📅 TODAY", today),
                     _buildSection("🟡 TOMORROW", tomorrow),
                     _buildSection("📦 UPCOMING", upcoming),
-                    _buildSection("✔ COMPLETED", completed),
+                    _buildCompletedSection(completed),
 
                     const SizedBox(height: 80),
                   ],
