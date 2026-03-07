@@ -331,60 +331,102 @@ class _TodoScreenState extends State<TodoScreen> {
       },
 
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 12, vertical: 6),
-        child: Card(
-          child: ListTile(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
 
-            leading: Checkbox(
-              value: todo.isComplete,
-              onChanged: (_) {
-                context.read<TodoBloc>().add(
-                  ToggleTodoStatus(id: todo.id),
-                );
-              },
+        child: Material(
+          elevation: 2,
+          borderRadius: BorderRadius.circular(16),
+
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: Colors.white,
             ),
 
-            title: Row(
+            child: Row(
               children: [
 
+                /// PRIORITY STRIP
                 Container(
-                  width: 8,
-                  height: 8,
+                  width: 6,
+                  height: 72,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
                     color: getPriorityColor(todo.priority),
-                  ),
-                ),
-
-                const SizedBox(width: 8),
-
-                Expanded(
-                  child: Text(
-                    todo.description,
-                    style: TextStyle(
-                      decoration: todo.isComplete
-                          ? TextDecoration.lineThrough
-                          : TextDecoration.none,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      bottomLeft: Radius.circular(16),
                     ),
                   ),
                 ),
-              ],
-            ),
 
-            subtitle: Wrap(
-              spacing: 10,
-              runSpacing: 4,
-              children: [
+                const SizedBox(width: 12),
 
-                if (todo.dueDate != null)
-                  _infoIcon(Icons.calendar_today, _formatDate(todo.dueDate!)),
+                /// CONTENT
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
 
-                if (todo.startReminder != null)
-                  _infoIcon(Icons.play_arrow, _formatTime(todo.startReminder!)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
 
-                if (todo.reminderTime != null)
-                  _infoIcon(Icons.notifications, _formatTime(todo.reminderTime!)),
+                        /// DESCRIPTION
+                        Text(
+                          todo.description,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            decoration: todo.isComplete
+                                ? TextDecoration.lineThrough
+                                : TextDecoration.none,
+                          ),
+                        ),
+
+                        const SizedBox(height: 6),
+
+                        /// META INFO
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 4,
+                          children: [
+
+                            if (todo.dueDate != null)
+                              _infoIcon(
+                                  Icons.calendar_today,
+                                  _formatDate(todo.dueDate!)
+                              ),
+
+                            if (todo.startReminder != null)
+                              _infoIcon(
+                                  Icons.play_arrow,
+                                  _formatTime(todo.startReminder!)
+                              ),
+
+                            if (todo.reminderTime != null)
+                              _infoIcon(
+                                  Icons.notifications,
+                                  _formatTime(todo.reminderTime!)
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                /// CHECKBOX
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+
+                  child: Checkbox(
+                    value: todo.isComplete,
+                    onChanged: (_) {
+                      context.read<TodoBloc>().add(
+                        ToggleTodoStatus(id: todo.id),
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           ),
