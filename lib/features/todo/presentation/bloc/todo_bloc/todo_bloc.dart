@@ -3,10 +3,10 @@ import 'package:todo_app/core/notifications/notification_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:todo_app/features/todo/data/datasources/todo_local_datasource.dart';
 import 'package:todo_app/features/todo/data/models/todo_model.dart';
-import 'package:todo_app/features/todo/presentation/bloc/todo_event.dart';
-import 'package:todo_app/features/todo/presentation/bloc/todo_state.dart';
+import 'package:todo_app/features/todo/presentation/bloc/todo_bloc/todo_event.dart';
+import 'package:todo_app/features/todo/presentation/bloc/todo_bloc/todo_state.dart';
 
-import '../../data/models/todo_filter.dart';
+import '../../../data/models/todo_filter.dart';
 
 class TodoBloc extends Bloc<TodoEvent, TodoState> {
   final TodoLocalDataSource _localDataSource;

@@ -5,7 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'core/notifications/notification_service.dart';
 import 'features/todo/data/datasources/todo_local_datasource.dart';
 import 'features/todo/data/models/todo_model.dart';
-import 'features/todo/presentation/bloc/todo_bloc.dart';
+import 'features/todo/presentation/bloc/todo_bloc/todo_bloc.dart';
 import 'features/todo/presentation/screens/todo_screen.dart';
 
 Future<void> main() async {

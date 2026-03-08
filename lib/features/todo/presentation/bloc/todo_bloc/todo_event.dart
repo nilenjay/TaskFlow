@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:todo_app/features/todo/data/models/todo_model.dart';
 
-import '../../data/models/todo_filter.dart';
+import '../../../data/models/todo_filter.dart';
 
 abstract class TodoEvent extends Equatable{
   const TodoEvent();

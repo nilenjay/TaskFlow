@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/models/todo_filter.dart';
 import '../../data/models/todo_model.dart';
-import '../bloc/todo_bloc.dart';
-import '../bloc/todo_event.dart';
-import '../bloc/todo_state.dart';
+import '../bloc/todo_bloc/todo_bloc.dart';
+import '../bloc/todo_bloc/todo_event.dart';
+import '../bloc/todo_bloc/todo_state.dart';
 
 class TodoScreen extends StatefulWidget {
   const TodoScreen({super.key});
