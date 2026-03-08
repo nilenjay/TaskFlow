@@ -1,5 +1,5 @@
 import 'package:hive/hive.dart';
-import 'package:todo_app/features/focus/data/models/focus_model.dart';
+import '../models/focus_model.dart';
 
 class FocusLocalDataSource {
   static const String _boxName = 'focusSessionsBox';

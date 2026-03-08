@@ -1,8 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:hive/hive.dart';
 
-part 'focus_model.g.dart';
-
 // ─── FocusType enum ───────────────────────────────────────────────────────────
 
 @HiveType(typeId: 1)

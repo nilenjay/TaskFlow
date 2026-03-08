@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:todo_app/features/focus/data/models/focus_model.dart';
+import '../../../data/models/focus_model.dart';
 
 abstract class FocusEvent extends Equatable {
   const FocusEvent();
