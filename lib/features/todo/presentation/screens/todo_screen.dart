@@ -597,13 +597,13 @@ class _TodoScreenState extends State<TodoScreen> {
                   TextField(
                     controller: controller,
                     decoration:
-                    const InputDecoration(hintText: ""),
+                    const InputDecoration(hintText: "Description"),
                   ),
 
                   const SizedBox(height: 12),
 
                   ElevatedButton(
-                    child: const Text(""),
+                    child: const Text("Pick Due Date"),
                     onPressed: () async {
 
                       final picked = await showDatePicker(
@@ -620,7 +620,7 @@ class _TodoScreenState extends State<TodoScreen> {
                   ),
 
                   ElevatedButton(
-                    child: const Text(""),
+                    child: const Text("Pick Reminder"),
                     onPressed: () async {
 
                       final time = await showTimePicker(

@@ -10,6 +10,7 @@ import 'features/focus/presentation/screens/focus_screen.dart';
 import 'features/todo/data/datasources/todo_local_datasource.dart';
 import 'features/todo/data/models/todo_model.dart';
 import 'features/todo/presentation/bloc/todo_bloc/todo_bloc.dart';
+import 'features/todo/presentation/screens/calendar_screen.dart';
 import 'features/todo/presentation/screens/todo_screen.dart';
 
 Future<void> main() async {
@@ -40,7 +41,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "Todo App",
+      title: 'Todo App',
       themeMode: ThemeMode.system,
       theme: ThemeData(
         brightness: Brightness.light,
@@ -57,7 +58,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// ─── AppShell — owns the bottom nav and switches between pages ────────────────
+// ─── AppShell ─────────────────────────────────────────────────────────────────
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -71,6 +72,7 @@ class _AppShellState extends State<AppShell> {
 
   final List<Widget> _pages = [
     const TodoScreen(),
+    const CalendarScreen(),
     const FocusScreen(),
   ];
 
@@ -91,6 +93,11 @@ class _AppShellState extends State<AppShell> {
             icon: Icon(Icons.check_box_outline_blank),
             selectedIcon: Icon(Icons.check_box),
             label: 'Tasks',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
+            label: 'Calendar',
           ),
           NavigationDestination(
             icon: Icon(Icons.timer_outlined),
