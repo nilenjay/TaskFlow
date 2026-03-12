@@ -368,6 +368,14 @@ class _TodoScreenState extends State<TodoScreen> {
               case TodoFilter.completed:
                 filtered = todos.where((t) => t.isComplete).toList();
                 break;
+              case TodoFilter.overdue:
+                filtered = todos
+                    .where((t) =>
+                !t.isComplete &&
+                    t.dueDate != null &&
+                    t.dueDate!.isBefore(DateTime.now()))
+                    .toList();
+                break;
               case TodoFilter.all:
                 filtered = todos;
                 break;
@@ -416,9 +424,8 @@ class _TodoScreenState extends State<TodoScreen> {
 
             return Column(
               children: [
-                // Space for extendBodyBehindAppBar
-                SizedBox(
-                    height: MediaQuery.of(context).padding.top + kToolbarHeight),
+                // Status bar inset only — AppBar draws itself via extendBodyBehindAppBar
+                SizedBox(height: MediaQuery.of(context).padding.top + kToolbarHeight - 8),
 
                 _buildProgressIndicator(todos),
 
@@ -463,15 +470,20 @@ class _TodoScreenState extends State<TodoScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16, vertical: 10),
-                  child: Row(
-                    children: [
-                      _filterChip('All', TodoFilter.all, filter),
-                      const SizedBox(width: 8),
-                      _filterChip('Active', TodoFilter.active, filter),
-                      const SizedBox(width: 8),
-                      _filterChip(
-                          'Completed', TodoFilter.completed, filter),
-                    ],
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _filterChip('All', TodoFilter.all, filter),
+                        const SizedBox(width: 8),
+                        _filterChip('Active', TodoFilter.active, filter),
+                        const SizedBox(width: 8),
+                        _filterChip('Completed', TodoFilter.completed, filter),
+                        const SizedBox(width: 8),
+                        _filterChip('Overdue', TodoFilter.overdue, filter,
+                            accentColor: AppTheme.priorityHigh),
+                      ],
+                    ),
                   ),
                 ),
 
@@ -497,20 +509,36 @@ class _TodoScreenState extends State<TodoScreen> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddDialog,
-        backgroundColor: AppTheme.accentDim,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Task',
-            style: TextStyle(fontWeight: FontWeight.w600)),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.accentDim.withOpacity(0.45),
+              blurRadius: 20,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: _showAddDialog,
+          backgroundColor: AppTheme.accentDim,
+          foregroundColor: Colors.white,
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('Add Task',
+              style: TextStyle(fontWeight: FontWeight.w700)),
+        ),
       ),
+      floatingActionButtonLocation:
+      FloatingActionButtonLocation.centerFloat,
     );
   }
 
   Widget _filterChip(
-      String label, TodoFilter value, TodoFilter current) {
+      String label, TodoFilter value, TodoFilter current,
+      {Color? accentColor}) {
     final selected = current == value;
+    final color = accentColor ?? AppTheme.accent;
     return GestureDetector(
       onTap: () =>
           context.read<TodoBloc>().add(ChangeFilter(filter: value)),
@@ -519,16 +547,16 @@ class _TodoScreenState extends State<TodoScreen> {
         padding:
         const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? AppTheme.accent : AppTheme.glassFill,
+          color: selected ? color.withOpacity(0.2) : AppTheme.glassFill,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? AppTheme.accent : AppTheme.glassBorder,
+            color: selected ? color : AppTheme.glassBorder,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : AppTheme.textSecondary,
+            color: selected ? color : AppTheme.textSecondary,
             fontSize: 13,
             fontWeight:
             selected ? FontWeight.w600 : FontWeight.normal,

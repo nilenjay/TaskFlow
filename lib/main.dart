@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -14,9 +15,23 @@ import 'features/todo/presentation/bloc/todo_bloc/todo_bloc.dart';
 import 'features/todo/presentation/screens/calendar_screen.dart';
 import 'features/todo/presentation/screens/todo_screen.dart';
 
+// Shared dark nav bar colours used on all screens
+const _navBgColor        = Color(0xFF0D1020);
+const _navIndicatorColor = Color(0xFF2A2D4A);
+const _navIconUnsel      = Color(0xFF64748B); // slate-500
+const _navIconSel        = Color(0xFF818CF8); // indigo-400
+const _navLabelUnsel     = Color(0xFF64748B);
+const _navLabelSel       = Color(0xFF818CF8);
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.instance.init();
+
+  // Make system nav bar match our dark theme
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    systemNavigationBarColor: _navBgColor,
+    systemNavigationBarIconBrightness: Brightness.light,
+  ));
 
   await Hive.initFlutter();
   Hive.registerAdapter(TodoModelAdapter());
@@ -43,16 +58,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Todo App',
-      themeMode: ThemeMode.system,
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primaryColor: const Color(0xFF6366F1),
-        scaffoldBackgroundColor: const Color(0xFFF9FAFB),
-      ),
+      // Force dark theme always — all screens are now dark
+      themeMode: ThemeMode.dark,
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        primaryColor: const Color(0xFF6366F1),
-        scaffoldBackgroundColor: const Color(0xFF121212),
+        primaryColor: const Color(0xFF818CF8),
+        scaffoldBackgroundColor: const Color(0xFF020617),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFF818CF8),
+          secondary: Color(0xFF4F46E5),
+          surface: Color(0xFF0D1020),
+        ),
       ),
       home: const AppShell(),
     );
@@ -79,54 +95,69 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch FocusBloc — rebuilds AppShell when focus state changes so the
-    // nav bar updates immediately when a session starts or ends.
     final focusState = context.watch<FocusBloc>().state;
-    final isFocusRunning =
-        _currentIndex == 2 && focusState is FocusRunning;
+    final isFocusRunning = _currentIndex == 2 && focusState is FocusRunning;
 
+    // Only extend body (gradient bleeds behind nav) when focus session is active
     return Scaffold(
-      // extendBody: true lets the page content draw behind the nav bar,
-      // so the gradient bleeds through when it's transparent.
-      extendBody: true,
+      backgroundColor: const Color(0xFF020617),
+      extendBody: isFocusRunning,
       body: IndexedStack(
         index: _currentIndex,
         children: _pages,
       ),
       bottomNavigationBar: NavigationBarTheme(
         data: isFocusRunning
+        // ── Focus running: transparent nav over gradient ──────────────
             ? NavigationBarThemeData(
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
-          // Selection indicator: subtle white circle
           indicatorColor: Colors.white.withOpacity(0.18),
-          // Icons
           iconTheme: WidgetStateProperty.resolveWith((states) {
-            final selected = states.contains(WidgetState.selected);
+            final sel = states.contains(WidgetState.selected);
             return IconThemeData(
-              color: selected ? Colors.white : Colors.white60,
-              size: 24,
-            );
+                color: sel ? Colors.white : Colors.white60,
+                size: 24);
           }),
-          // Labels
-          labelTextStyle: WidgetStateProperty.resolveWith((states) {
-            final selected = states.contains(WidgetState.selected);
+          labelTextStyle:
+          WidgetStateProperty.resolveWith((states) {
+            final sel = states.contains(WidgetState.selected);
             return TextStyle(
-              color: selected ? Colors.white : Colors.white60,
-              fontWeight: selected
-                  ? FontWeight.w600
-                  : FontWeight.normal,
+              color: sel ? Colors.white : Colors.white60,
+              fontWeight:
+              sel ? FontWeight.w600 : FontWeight.normal,
               fontSize: 12,
             );
           }),
         )
-            : const NavigationBarThemeData(), // default theme for all other screens
+        // ── All other screens: dark nav bar ───────────────────────────
+            : NavigationBarThemeData(
+          backgroundColor: _navBgColor,
+          shadowColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          indicatorColor: _navIndicatorColor,
+          iconTheme: WidgetStateProperty.resolveWith((states) {
+            final sel = states.contains(WidgetState.selected);
+            return IconThemeData(
+                color: sel ? _navIconSel : _navIconUnsel,
+                size: 24);
+          }),
+          labelTextStyle:
+          WidgetStateProperty.resolveWith((states) {
+            final sel = states.contains(WidgetState.selected);
+            return TextStyle(
+              color: sel ? _navLabelSel : _navLabelUnsel,
+              fontWeight:
+              sel ? FontWeight.w600 : FontWeight.normal,
+              fontSize: 12,
+            );
+          }),
+        ),
         child: NavigationBar(
           selectedIndex: _currentIndex,
-          onDestinationSelected: (index) {
-            setState(() => _currentIndex = index);
-          },
+          onDestinationSelected: (index) =>
+              setState(() => _currentIndex = index),
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.check_box_outline_blank),
