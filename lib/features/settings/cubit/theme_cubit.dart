@@ -1,8 +1,9 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:todo_app/features/settings/data/settings_local_datasource.dart';
-import 'package:todo_app/features/settings/data/settings_model.dart';
+
+import '../data/datasources/settings_local_datasource.dart';
+import '../data/models/settings_model.dart';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 

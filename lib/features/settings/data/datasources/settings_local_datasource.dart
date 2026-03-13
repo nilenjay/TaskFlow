@@ -1,5 +1,5 @@
 import 'package:hive/hive.dart';
-import 'settings_model.dart';
+import '../models/settings_model.dart';
 
 class SettingsLocalDataSource {
   static const String _boxName = 'settingsBox';
