@@ -5,7 +5,7 @@ import '../../data/models/todo_model.dart';
 import '../bloc/todo_bloc/todo_bloc.dart';
 import '../bloc/todo_bloc/todo_state.dart';
 import 'app_theme.dart';
-import 'todo_screen.dart'; // getPriorityGradient
+import 'status_config.dart'; // ← replaces getPriorityGradient
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -24,10 +24,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
       a.year == b.year && a.month == b.month && a.day == b.day;
 
   List<DateTime> _buildGridDays() {
-    final first =
-    DateTime(_focusedMonth.year, _focusedMonth.month, 1);
-    final last =
-    DateTime(_focusedMonth.year, _focusedMonth.month + 1, 0);
+    final first = DateTime(_focusedMonth.year, _focusedMonth.month, 1);
+    final last = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 0);
     final leading = first.weekday % 7;
     final trailing = 6 - (last.weekday % 7);
     final days = <DateTime>[];
@@ -72,9 +70,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     'May', 'June', 'July', 'August',
     'September', 'October', 'November', 'December',
   ];
-  static const _weekdays = [
-    'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'
-  ];
+  static const _weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   @override
   Widget build(BuildContext context) {
@@ -126,8 +122,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           icon: const Icon(Icons.chevron_left,
                               color: AppTheme.textSecondary),
                           onPressed: () => setState(() {
-                            _focusedMonth = DateTime(_focusedMonth.year,
-                                _focusedMonth.month - 1);
+                            _focusedMonth = DateTime(
+                                _focusedMonth.year, _focusedMonth.month - 1);
                           }),
                         ),
                         Text(
@@ -142,8 +138,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           icon: const Icon(Icons.chevron_right,
                               color: AppTheme.textSecondary),
                           onPressed: () => setState(() {
-                            _focusedMonth = DateTime(_focusedMonth.year,
-                                _focusedMonth.month + 1);
+                            _focusedMonth = DateTime(
+                                _focusedMonth.year, _focusedMonth.month + 1);
                           }),
                         ),
                       ],
@@ -155,21 +151,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                 // ── Weekday headers ───────────────────────────────────
                 Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
                     children: _weekdays
                         .map((d) => Expanded(
                       child: Center(
-                        child: Text(
-                          d,
-                          style: const TextStyle(
-                            color: AppTheme.textMuted,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
+                        child: Text(d,
+                            style: const TextStyle(
+                              color: AppTheme.textMuted,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            )),
                       ),
                     ))
                         .toList(),
@@ -180,8 +173,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                 // ── Calendar grid ─────────────────────────────────────
                 Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -198,8 +190,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       final isCurrentMonth =
                           day.month == _focusedMonth.month;
                       final isSelected = _isSameDay(day, _selectedDay);
-                      final isToday =
-                      _isSameDay(day, DateTime.now());
+                      final isToday = _isSameDay(day, DateTime.now());
                       final dots = _dotsForDay(day, todos);
 
                       return GestureDetector(
@@ -254,7 +245,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       _Dot(
                                           color: isSelected
                                               ? Colors.white70
-                                              : AppTheme.priorityHigh),
+                                              : const Color(0xFFF87171)),
                                   ],
                                 )
                               else
@@ -269,7 +260,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                 const SizedBox(height: 12),
 
-                // Divider
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Divider(
@@ -295,7 +285,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       const SizedBox(height: 8),
                       _TaskSection(
                         icon: Icons.flag,
-                        iconColor: AppTheme.priorityHigh,
+                        iconColor: const Color(0xFFF87171),
                         label: 'Due',
                         todos: due,
                       ),
@@ -311,7 +301,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 }
 
-// ─── Dot ─────────────────────────────────────────────────────────────────────
+// ─── Dot ──────────────────────────────────────────────────────────────────────
 
 class _Dot extends StatelessWidget {
   final Color color;
@@ -351,30 +341,24 @@ class _TaskSection extends StatelessWidget {
           children: [
             Icon(icon, color: iconColor, size: 18),
             const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: iconColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
+            Text(label,
+                style: TextStyle(
+                    color: iconColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14)),
             const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 8, vertical: 2),
+              padding:
+              const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
                 color: iconColor.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Text(
-                '${todos.length}',
-                style: TextStyle(
-                  color: iconColor,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: Text('${todos.length}',
+                  style: TextStyle(
+                      color: iconColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -382,11 +366,9 @@ class _TaskSection extends StatelessWidget {
         if (todos.isEmpty)
           Padding(
             padding: const EdgeInsets.only(left: 4, bottom: 4),
-            child: Text(
-              'No tasks',
-              style: const TextStyle(
-                  color: AppTheme.textMuted, fontSize: 13),
-            ),
+            child: Text('No tasks',
+                style: const TextStyle(
+                    color: AppTheme.textMuted, fontSize: 13)),
           )
         else
           ...todos.map((t) => _CalendarTile(todo: t)),
@@ -403,6 +385,8 @@ class _CalendarTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cfg = statusConfig(todo.status); // ← status-based colour
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Container(
@@ -410,11 +394,11 @@ class _CalendarTile extends StatelessWidget {
         child: IntrinsicHeight(
           child: Row(
             children: [
-              // Priority strip
+              // Status-coloured left strip (replaces priority gradient)
               Container(
                 width: 4,
                 decoration: BoxDecoration(
-                  gradient: getPriorityGradient(todo.priority),
+                  color: cfg.colorA,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(14),
                     bottomLeft: Radius.circular(14),

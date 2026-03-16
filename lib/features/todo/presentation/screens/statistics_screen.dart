@@ -4,8 +4,8 @@ import 'package:todo_app/features/todo/data/models/todo_model.dart';
 import 'package:todo_app/features/todo/presentation/bloc/todo_bloc/todo_bloc.dart';
 import 'package:todo_app/features/todo/presentation/bloc/todo_bloc/todo_state.dart';
 import 'package:todo_app/features/todo/presentation/screens/app_theme.dart';
+import 'package:todo_app/features/todo/presentation/screens/status_config.dart';
 import 'package:todo_app/features/todo/presentation/screens/streak_service.dart';
-import 'package:todo_app/features/todo/presentation/screens/todo_screen.dart';
 
 class StatisticsScreen extends StatelessWidget {
   const StatisticsScreen({super.key});
@@ -29,8 +29,7 @@ class StatisticsScreen extends StatelessWidget {
             t.dueDate != null &&
             t.dueDate!.isBefore(DateTime.now()))
             .length;
-        final completionRate =
-        total > 0 ? completed / total : 0.0;
+        final completionRate = total > 0 ? completed / total : 0.0;
         final streak = StreakService.instance.calculate(todos);
 
         return Scaffold(
@@ -111,30 +110,22 @@ class StatisticsScreen extends StatelessWidget {
                         child: LinearProgressIndicator(
                           value: completionRate,
                           minHeight: 10,
-                          backgroundColor:
-                          Colors.white.withOpacity(0.08),
+                          backgroundColor: Colors.white.withOpacity(0.08),
                           valueColor: const AlwaysStoppedAnimation(
                               Color(0xFF34D399)),
                         ),
                       ),
                       const SizedBox(height: 8),
                       Row(
-                        mainAxisAlignment:
-                        MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            '$completed completed',
-                            style: const TextStyle(
-                                color: AppTheme.textMuted,
-                                fontSize: 12),
-                          ),
-                          if (overdue > 0)
-                            Text(
-                              '$overdue overdue',
+                          Text('$completed completed',
                               style: const TextStyle(
-                                  color: Color(0xFFF87171),
-                                  fontSize: 12),
-                            ),
+                                  color: AppTheme.textMuted, fontSize: 12)),
+                          if (overdue > 0)
+                            Text('$overdue overdue',
+                                style: const TextStyle(
+                                    color: Color(0xFFF87171), fontSize: 12)),
                         ],
                       ),
                     ],
@@ -143,16 +134,14 @@ class StatisticsScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // ── Streak card ───────────────────────────────────────
+                // ── Streak ────────────────────────────────────────────
                 _GlassSection(
                   title: 'Streak',
                   child: Row(
                     children: [
-                      _streakStat('🏆', '${streak.bestStreak}',
-                          'Best Streak'),
+                      _streakStat('🏆', '${streak.bestStreak}', 'Best Streak'),
                       _divider(),
-                      _streakStat('✅', '${streak.totalDone}',
-                          'Total Done'),
+                      _streakStat('✅', '${streak.totalDone}', 'Total Done'),
                       _divider(),
                       _streakStat(
                         '📅',
@@ -167,78 +156,59 @@ class StatisticsScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // ── Completed vs Pending bar chart ────────────────────
+                // ── Completed vs Pending ──────────────────────────────
                 _GlassSection(
                   title: 'Completed vs Pending',
                   child: _BarChart(
                     bars: [
-                      _Bar('Completed', completed,
-                          const Color(0xFF34D399)),
-                      _Bar('Pending', pending,
-                          const Color(0xFFFBBF24)),
-                      _Bar('Overdue', overdue,
-                          const Color(0xFFF87171)),
+                      _Bar('Completed', completed, const Color(0xFF34D399)),
+                      _Bar('Pending', pending, const Color(0xFFFBBF24)),
+                      _Bar('Overdue', overdue, const Color(0xFFF87171)),
                     ],
                   ),
                 ),
 
                 const SizedBox(height: 16),
 
-                // ── Tasks by priority ─────────────────────────────────
+                // ── Tasks by Status ───────────────────────────────────
                 _GlassSection(
-                  title: 'Tasks by Priority',
+                  title: 'Tasks by Status',
                   child: _BarChart(
-                    bars: [
-                      _Bar(
-                          'High',
-                          todos
-                              .where((t) => t.priority == 1)
-                              .length,
-                          AppTheme.priorityHigh),
-                      _Bar(
-                          'Medium',
-                          todos
-                              .where((t) => t.priority == 2)
-                              .length,
-                          AppTheme.priorityMedium),
-                      _Bar(
-                          'Low',
-                          todos
-                              .where((t) => t.priority == 3)
-                              .length,
-                          AppTheme.priorityLow),
-                    ],
+                    bars: TodoStatus.values.map((s) {
+                      final cfg = statusConfig(s);
+                      return _Bar(
+                        cfg.label,
+                        todos.where((t) => t.status == s).length,
+                        cfg.midColor,
+                      );
+                    }).toList(),
                   ),
                 ),
 
                 const SizedBox(height: 16),
 
-                // ── Tasks by category ─────────────────────────────────
+                // ── Tasks by Category ─────────────────────────────────
                 _GlassSection(
                   title: 'Tasks by Category',
                   child: _BarChart(
                     bars: TodoCategory.values.map((cat) {
                       final count =
                           todos.where((t) => t.category == cat).length;
-                      final colors = {
-                        TodoCategory.work: const Color(0xFF60A5FA),
-                        TodoCategory.personal:
-                        const Color(0xFF34D399),
-                        TodoCategory.professional:
-                        const Color(0xFF818CF8),
-                        TodoCategory.family:
-                        const Color(0xFFFBBF24),
-                        TodoCategory.fitness:
-                        const Color(0xFFF87171),
-                        TodoCategory.other: const Color(0xFF94A3B8),
+                      const colors = {
+                        TodoCategory.work:         Color(0xFF60A5FA),
+                        TodoCategory.personal:     Color(0xFF34D399),
+                        TodoCategory.professional: Color(0xFF818CF8),
+                        TodoCategory.family:       Color(0xFFFBBF24),
+                        TodoCategory.fitness:      Color(0xFFF87171),
+                        TodoCategory.other:        Color(0xFF94A3B8),
                       };
-                      final labels = {
-                        TodoCategory.work: 'Work',
-                        TodoCategory.personal: 'Personal',
-                        TodoCategory.professional: 'Professional',
-                        TodoCategory.family: 'Family',
-                        TodoCategory.fitness: 'Fitness',
-                        TodoCategory.other: 'Other',
+                      const labels = {
+                        TodoCategory.work:         'Work',
+                        TodoCategory.personal:     'Personal',
+                        TodoCategory.professional: 'Pro',
+                        TodoCategory.family:       'Family',
+                        TodoCategory.fitness:      'Fitness',
+                        TodoCategory.other:        'Other',
                       };
                       return _Bar(labels[cat]!, count, colors[cat]!);
                     }).toList(),
@@ -311,10 +281,9 @@ class _StatCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(value,
                 style: TextStyle(
-                  color: color,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                )),
+                    color: color,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold)),
             Text(label,
                 style: const TextStyle(
                     color: AppTheme.textMuted, fontSize: 12)),
@@ -325,7 +294,7 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ─── Glass section wrapper ────────────────────────────────────────────────────
+// ─── Glass section ────────────────────────────────────────────────────────────
 
 class _GlassSection extends StatelessWidget {
   final String title;
@@ -375,8 +344,7 @@ class _BarChart extends StatelessWidget {
 
     return Column(
       children: bars.map((bar) {
-        final fraction =
-        maxVal > 0 ? bar.value / maxVal : 0.0;
+        final fraction = maxVal > 0 ? bar.value / maxVal : 0.0;
         return Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Row(

@@ -49,7 +49,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       dueDate: event.dueDate,
       reminderTime: event.reminderTime,
       startReminder: event.startReminder,
-      priority: event.priority,
+      status: event.status,       // ← was priority
       category: event.category,
     );
 
@@ -71,14 +71,11 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     if (state is TodoLoaded) oldTodos = (state as TodoLoaded).todos;
     else if (state is TodoDeleted) oldTodos = (state as TodoDeleted).todos;
 
-    final deletedTodo =
-    oldTodos.firstWhere((todo) => todo.id == event.id);
-    final newTodos =
-    oldTodos.where((todo) => todo.id != event.id).toList();
+    final deletedTodo = oldTodos.firstWhere((todo) => todo.id == event.id);
+    final newTodos = oldTodos.where((todo) => todo.id != event.id).toList();
 
     await _localDataSource.saveTodos(newTodos);
-    await NotificationService.instance
-        .cancelNotification(event.id.hashCode);
+    await NotificationService.instance.cancelNotification(event.id.hashCode);
     await NotificationService.instance
         .cancelNotification((event.id + "_start").hashCode);
 
@@ -96,21 +93,21 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     else if (state is TodoDeleted) oldTodos = (state as TodoDeleted).todos;
 
     final toggled = oldTodos.firstWhere((t) => t.id == event.id);
-    final newTodos = oldTodos
-        .map((todo) => todo.id == event.id
-        ? todo.copyWith(isComplete: !todo.isComplete)
-        : todo)
-        .toList();
-    final bool willBeComplete = !toggled.isComplete;
+    final newIsComplete = !toggled.isComplete;
 
-    if (willBeComplete) {
-      await NotificationService.instance
-          .cancelNotification(event.id.hashCode);
+    // When toggling done, also sync status
+    final newStatus = newIsComplete ? TodoStatus.done : TodoStatus.toDo;
+
+    final newTodos = oldTodos.map((todo) => todo.id == event.id
+        ? todo.copyWith(isComplete: newIsComplete, status: newStatus)
+        : todo).toList();
+
+    if (newIsComplete) {
+      await NotificationService.instance.cancelNotification(event.id.hashCode);
       await NotificationService.instance
           .cancelNotification((event.id + "_start").hashCode);
     } else {
-      final updatedTodo = toggled.copyWith(isComplete: willBeComplete);
-      await _scheduleReminder(updatedTodo);
+      await _scheduleReminder(toggled.copyWith(isComplete: false));
     }
 
     await _localDataSource.saveTodos(newTodos);
@@ -207,10 +204,8 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       currentSearch = (state as TodoDeleted).searchQuery;
     }
 
-    final oldTodo =
-    oldTodos.firstWhere((t) => t.id == event.updatedTodo.id);
-    await NotificationService.instance
-        .cancelNotification(oldTodo.id.hashCode);
+    final oldTodo = oldTodos.firstWhere((t) => t.id == event.updatedTodo.id);
+    await NotificationService.instance.cancelNotification(oldTodo.id.hashCode);
     await NotificationService.instance
         .cancelNotification((oldTodo.id + "_start").hashCode);
 
@@ -264,20 +259,18 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       if (difference == 0) {
         scheduledTime = due.subtract(const Duration(minutes: 30));
       } else if (difference == 1) {
-        scheduledTime =
-            DateTime(now.year, now.month, now.day, 20, 0);
+        scheduledTime = DateTime(now.year, now.month, now.day, 20, 0);
       } else if (difference > 1) {
         final reminderDay = due.subtract(const Duration(days: 1));
-        scheduledTime = DateTime(reminderDay.year, reminderDay.month,
-            reminderDay.day, 20, 0);
+        scheduledTime = DateTime(
+            reminderDay.year, reminderDay.month, reminderDay.day, 20, 0);
       }
     }
 
     if (scheduledTime == null) return;
     if (scheduledTime.isBefore(DateTime.now())) return;
 
-    await NotificationService.instance
-        .cancelNotification(todo.id.hashCode);
+    await NotificationService.instance.cancelNotification(todo.id.hashCode);
     await NotificationService.instance.scheduleNotification(
       id: todo.id.hashCode,
       title: "Todo Reminder",
@@ -296,8 +289,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
     if (difference <= 3) {
       final tomorrow = now.add(const Duration(days: 1));
-      return DateTime(
-          tomorrow.year, tomorrow.month, tomorrow.day, 18, 0);
+      return DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 18, 0);
     }
     final startDay = dueDate.subtract(const Duration(days: 2));
     return DateTime(startDay.year, startDay.month, startDay.day, 18, 0);
