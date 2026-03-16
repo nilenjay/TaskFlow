@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:todo_app/features/todo/data/models/todo_model.dart';
-
 import '../../../data/models/todo_filter.dart';
 
 abstract class TodoEvent extends Equatable {
@@ -14,7 +13,7 @@ class AddTodo extends TodoEvent {
   final DateTime? dueDate;
   final DateTime? reminderTime;
   final DateTime? startReminder;
-  final int priority;
+  final TodoStatus status;
   final TodoCategory category;
 
   const AddTodo({
@@ -22,13 +21,13 @@ class AddTodo extends TodoEvent {
     this.dueDate,
     this.reminderTime,
     this.startReminder,
-    this.priority = 2,
+    this.status = TodoStatus.toDo,
     this.category = TodoCategory.personal,
   });
 
   @override
   List<Object?> get props =>
-      [description, dueDate, reminderTime, startReminder, priority, category];
+      [description, dueDate, reminderTime, startReminder, status, category];
 }
 
 class DeleteTodo extends TodoEvent {
@@ -86,4 +85,4 @@ class ChangeSortOrder extends TodoEvent {
   List<Object?> get props => [sortOrder];
 }
 
-enum TodoSortOrder { dateAdded, dueDate, priority, category }
+enum TodoSortOrder { dateAdded, dueDate, status, category }

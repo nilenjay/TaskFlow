@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo_app/features/focus/data/models/focus_model.dart';
 import 'package:todo_app/features/settings/cubit/theme_cubit.dart';
 import 'package:todo_app/features/todo/presentation/screens/app_theme.dart';
+import 'package:todo_app/features/todo/presentation/screens/animated_theme_toggle.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -74,13 +75,10 @@ class SettingsScreen extends StatelessWidget {
                         : const Color(0xFFF59E0B),
                     title: 'Dark Mode',
                     subtitle: isDark ? 'Currently dark' : 'Currently light',
-                    trailing: Switch(
-                      value: isDark,
+                    trailing: AnimatedThemeToggle(
+                      isDark: isDark,
                       onChanged: (_) =>
                           context.read<SettingsCubit>().toggleTheme(),
-                      activeColor: AppTheme.accent,
-                      activeTrackColor:
-                      AppTheme.accent.withOpacity(0.3),
                     ),
                   ),
                 ),
