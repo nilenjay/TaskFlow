@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:todo_app/features/auth/login_screen.dart';
-import 'package:todo_app/features/auth/signup_screen.dart';
+import '../presentation/login_screen.dart';
+import '../presentation/signup_screen.dart';
 
 /// Switches between LoginScreen and SignupScreen without a Navigator push,
 /// so the gradient background stays consistent and there's no page transition flash.
