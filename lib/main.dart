@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
 import 'core/notifications/notification_service.dart';
 import 'features/focus/data/datasourses/focus_local_datasourse.dart';
 import 'features/focus/data/models/focus_model.dart';
@@ -18,15 +19,39 @@ import 'features/todo/presentation/screens/calendar_screen.dart';
 import 'features/todo/presentation/screens/settings_screen.dart';
 import 'features/todo/presentation/screens/todo_screen.dart';
 
+/// Bump this number any time you change a Hive model schema.
+/// Hive will detect the mismatch and wipe the box cleanly.
+const int _schemaVersion = 2;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.instance.init();
 
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    systemNavigationBarColor: Color(0xFF0D1020),
+    systemNavigationBarIconBrightness: Brightness.light,
+  ));
+
   await Hive.initFlutter();
-  Hive.registerAdapter(TodoModelAdapter());    // typeId: 0
-  Hive.registerAdapter(FocusTypeAdapter());   // typeId: 1
-  Hive.registerAdapter(SessionLogAdapter());  // typeId: 2
-  Hive.registerAdapter(AppSettingsAdapter()); // typeId: 3
+
+  // Register all adapters BEFORE opening any box
+  Hive.registerAdapter(TodoModelAdapter());      // typeId: 0
+  Hive.registerAdapter(FocusTypeAdapter());      // typeId: 1
+  Hive.registerAdapter(SessionLogAdapter());     // typeId: 2
+  Hive.registerAdapter(AppSettingsAdapter());    // typeId: 3
+  Hive.registerAdapter(TodoCategoryAdapter());   // typeId: 4
+  Hive.registerAdapter(TodoStatusAdapter());     // typeId: 5
+
+  // ── Schema migration guard ──────────────────────────────────────────────
+  // If schema version stored on disk differs from current, wipe todo box
+  // so Hive doesn't crash trying to read old int as TodoStatus.
+  final metaBox = await Hive.openBox<int>('_meta');
+  final storedVersion = metaBox.get('schemaVersion', defaultValue: 0)!;
+  if (storedVersion != _schemaVersion) {
+    await Hive.deleteBoxFromDisk('todosBox');
+    await metaBox.put('schemaVersion', _schemaVersion);
+  }
+
   await Hive.openBox<TodoModel>('todosBox');
 
   runApp(
@@ -35,8 +60,7 @@ Future<void> main() async {
         BlocProvider(create: (_) => TodoBloc(TodoLocalDataSource())),
         BlocProvider(create: (_) => FocusBloc(FocusLocalDataSource())),
         BlocProvider(
-            create: (_) =>
-                SettingsCubit(SettingsLocalDataSource())),
+            create: (_) => SettingsCubit(SettingsLocalDataSource())),
       ],
       child: const MyApp(),
     ),
@@ -50,7 +74,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, settingsState) {
-        // Update system nav bar to always match our dark bg
         SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
           systemNavigationBarColor: Color(0xFF0D1020),
           systemNavigationBarIconBrightness: Brightness.light,
@@ -111,11 +134,10 @@ class _AppShellState extends State<AppShell> {
     final isFocusRunning =
         _currentIndex == 2 && focusState is FocusRunning;
 
-    // Nav bar colours — transparent over focus gradient, dark everywhere else
-    const darkNavBg        = Color(0xFF0D1020);
-    const darkIndicator    = Color(0xFF2A2D4A);
-    const darkIconUnsel    = Color(0xFF64748B);
-    const darkIconSel      = Color(0xFF818CF8);
+    const darkNavBg     = Color(0xFF0D1020);
+    const darkIndicator = Color(0xFF2A2D4A);
+    const darkIconUnsel = Color(0xFF64748B);
+    const darkIconSel   = Color(0xFF818CF8);
 
     return Scaffold(
       backgroundColor: const Color(0xFF020617),
