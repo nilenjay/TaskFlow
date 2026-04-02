@@ -43,6 +43,7 @@ class TodoModel extends Equatable {
   @HiveField(6) final DateTime? startReminder;
   @HiveField(7) final TodoStatus status;
   @HiveField(8) final TodoCategory category;
+  @HiveField(9) final int priority;
 
   const TodoModel({
     required this.id,
@@ -54,6 +55,7 @@ class TodoModel extends Equatable {
     this.startReminder,
     this.status = TodoStatus.toDo,
     this.category = TodoCategory.personal,
+    this.priority = 2, // Default to medium
   });
 
   TodoModel copyWith({
@@ -66,6 +68,7 @@ class TodoModel extends Equatable {
     Object? startReminder = _noValue,
     TodoStatus? status,
     TodoCategory? category,
+    int? priority,
   }) {
     return TodoModel(
       id: id ?? this.id,
@@ -77,6 +80,7 @@ class TodoModel extends Equatable {
       startReminder: identical(startReminder, _noValue) ? this.startReminder : startReminder as DateTime?,
       status: status ?? this.status,
       category: category ?? this.category,
+      priority: priority ?? this.priority,
     );
   }
 
@@ -86,6 +90,6 @@ class TodoModel extends Equatable {
   @override
   List<Object?> get props => [
     id, description, isComplete, addedDate,
-    dueDate, reminderTime, startReminder, status, category,
+    dueDate, reminderTime, startReminder, status, category, priority,
   ];
 }

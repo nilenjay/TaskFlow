@@ -26,13 +26,14 @@ class TodoModelAdapter extends TypeAdapter<TodoModel> {
       startReminder: fields[6] as DateTime?,
       status: fields[7] as TodoStatus,
       category: fields[8] as TodoCategory,
+      priority: fields[9] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, TodoModel obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class TodoModelAdapter extends TypeAdapter<TodoModel> {
       ..writeByte(7)
       ..write(obj.status)
       ..writeByte(8)
-      ..write(obj.category);
+      ..write(obj.category)
+      ..writeByte(9)
+      ..write(obj.priority);
   }
 
   @override

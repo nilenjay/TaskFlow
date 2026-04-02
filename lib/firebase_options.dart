@@ -63,6 +63,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '403532199541',
     projectId: 'taskflow-c5e50',
     storageBucket: 'taskflow-c5e50.firebasestorage.app',
+    androidClientId: '403532199541-h0ajpuh8l86fllnftdiiritbvh51d801.apps.googleusercontent.com',
+    iosClientId: '403532199541-ve765e149bkt3vtf6l7cl6lm3e052cfj.apps.googleusercontent.com',
     iosBundleId: 'com.example.todoApp',
   );
 
@@ -72,6 +74,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '403532199541',
     projectId: 'taskflow-c5e50',
     storageBucket: 'taskflow-c5e50.firebasestorage.app',
+    androidClientId: '403532199541-h0ajpuh8l86fllnftdiiritbvh51d801.apps.googleusercontent.com',
+    iosClientId: '403532199541-ve765e149bkt3vtf6l7cl6lm3e052cfj.apps.googleusercontent.com',
     iosBundleId: 'com.example.todoApp',
   );
 
@@ -83,4 +87,5 @@ class DefaultFirebaseOptions {
     authDomain: 'taskflow-c5e50.firebaseapp.com',
     storageBucket: 'taskflow-c5e50.firebasestorage.app',
   );
+
 }

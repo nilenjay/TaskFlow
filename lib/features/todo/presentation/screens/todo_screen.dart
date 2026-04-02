@@ -5,6 +5,7 @@ import '../../data/models/todo_filter.dart';
 import '../../data/models/todo_model.dart';
 import '../bloc/todo_bloc/todo_bloc.dart';
 import '../bloc/todo_bloc/todo_event.dart';
+import '../../../settings/cubit/theme_cubit.dart';
 import '../bloc/todo_bloc/todo_state.dart';
 import 'app_theme.dart';
 import 'status_config.dart';
@@ -44,7 +45,7 @@ class _TodoScreenState extends State<TodoScreen> {
 
   // ── Stats row ─────────────────────────────────────────────────────────────
 
-  Widget _buildStatsRow(List<TodoModel> todos) {
+  Widget _buildStatsRow(List<TodoModel> todos, bool isDark) {
     final now = DateTime.now();
     final total = todos.length;
     final done = todos.where((t) => t.isComplete).length;
@@ -97,7 +98,7 @@ class _TodoScreenState extends State<TodoScreen> {
 
   // ── Streak banner ─────────────────────────────────────────────────────────
 
-  Widget _buildStreakBanner(List<TodoModel> todos) {
+  Widget _buildStreakBanner(List<TodoModel> todos, bool isDark) {
     final streak = StreakService.instance.calculate(todos);
     if (streak.currentStreak == 0 && streak.totalDone == 0) return const SizedBox();
 
@@ -161,7 +162,7 @@ class _TodoScreenState extends State<TodoScreen> {
 
   // ── Progress bar ──────────────────────────────────────────────────────────
 
-  Widget _buildProgressBar(List<TodoModel> todos) {
+  Widget _buildProgressBar(List<TodoModel> todos, bool isDark) {
     final total = todos.length;
     final completed = todos.where((t) => t.isComplete).length;
     final progress = total > 0 ? completed / total : 0.0;
@@ -170,21 +171,21 @@ class _TodoScreenState extends State<TodoScreen> {
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: Container(
         padding: const EdgeInsets.all(14),
-        decoration: AppTheme.glassCard(radius: 14),
+        decoration: AppTheme.glassCard(isDark: isDark, radius: 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('My Tasks',
+                Text('My Tasks',
                     style: TextStyle(
-                        color: AppTheme.textPrimary,
+                        color: AppTheme.getPrimaryText(isDark),
                         fontSize: 13,
                         fontWeight: FontWeight.w500)),
                 Text('$completed / $total completed',
-                    style: const TextStyle(
-                        color: AppTheme.textMuted, fontSize: 12)),
+                    style: TextStyle(
+                        color: AppTheme.getMutedText(isDark), fontSize: 12)),
               ],
             ),
             const SizedBox(height: 8),
@@ -205,7 +206,7 @@ class _TodoScreenState extends State<TodoScreen> {
 
   // ── Section ───────────────────────────────────────────────────────────────
 
-  Widget _buildSection(String title, List<TodoModel> todos) {
+  Widget _buildSection(String title, List<TodoModel> todos, bool isDark) {
     if (todos.isEmpty) return const SizedBox();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,9 +216,9 @@ class _TodoScreenState extends State<TodoScreen> {
           child: Row(
             children: [
               Text(title,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.textMuted,
+                      color: AppTheme.getMutedText(isDark),
                       fontSize: 12,
                       letterSpacing: 0.8)),
               const SizedBox(width: 6),
@@ -236,12 +237,12 @@ class _TodoScreenState extends State<TodoScreen> {
             ],
           ),
         ),
-        ...todos.map((t) => _buildTodoTile(t)),
+        ...todos.map((t) => _buildTodoTile(t, isDark)),
       ],
     );
   }
 
-  Widget _buildCompletedSection(List<TodoModel> todos) {
+  Widget _buildCompletedSection(List<TodoModel> todos, bool isDark) {
     if (todos.isEmpty) return const SizedBox();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,13 +256,13 @@ class _TodoScreenState extends State<TodoScreen> {
                 const Text('✔ COMPLETED',
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.textMuted,
+                        color: AppTheme.textSecondary,
                         fontSize: 12,
                         letterSpacing: 0.8)),
                 const SizedBox(width: 6),
                 Text('(${todos.length})',
                     style: const TextStyle(
-                        color: AppTheme.textMuted, fontSize: 12)),
+                        color: AppTheme.textSecondary, fontSize: 12)),
                 const Spacer(),
                 Icon(
                   _showCompleted ? Icons.expand_less : Icons.expand_more,
@@ -271,14 +272,14 @@ class _TodoScreenState extends State<TodoScreen> {
             ),
           ),
         ),
-        if (_showCompleted) ...todos.map((t) => _buildTodoTile(t)),
+        if (_showCompleted) ...todos.map((t) => _buildTodoTile(t, isDark)),
       ],
     );
   }
 
   // ── Todo tile — Image 1 dark dramatic style ───────────────────────────────
 
-  Widget _buildTodoTile(TodoModel todo) {
+  Widget _buildTodoTile(TodoModel todo, bool isDark) {
     final cfg = statusConfig(todo.status);
     final catCfg = _catConfig[todo.category]!;
     final isDone = todo.isComplete;
@@ -318,22 +319,24 @@ class _TodoScreenState extends State<TodoScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
         child: Container(
           decoration: BoxDecoration(
-            // Image 1 style: very dark card with subtle gradient
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: isDone
-                  ? [const Color(0xFF0D1117), const Color(0xFF0D1117)]
+                  ? [
+                isDark ? const Color(0xFF0D1117) : Colors.white.withOpacity(0.4),
+                isDark ? const Color(0xFF070B14) : Colors.white.withOpacity(0.4)
+              ]
                   : [
-                cfg.colorA.withOpacity(0.18),
-                const Color(0xFF0D1520),
+                cfg.colorA.withOpacity(isDark ? 0.18 : 0.1),
+                isDark ? const Color(0xFF0D1520) : Colors.white,
               ],
             ),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: isDone
-                  ? Colors.white.withOpacity(0.05)
-                  : cfg.colorA.withOpacity(0.35),
+                  ? (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05))
+                  : cfg.colorA.withOpacity(isDark ? 0.35 : 0.2),
               width: 1,
             ),
             boxShadow: isDone
@@ -365,14 +368,14 @@ class _TodoScreenState extends State<TodoScreen> {
                             todo.description,
                             style: TextStyle(
                               color: isDone
-                                  ? AppTheme.textMuted
-                                  : AppTheme.textPrimary,
+                                  ? AppTheme.getMutedText(isDark)
+                                  : AppTheme.getPrimaryText(isDark),
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                               decoration: isDone
                                   ? TextDecoration.lineThrough
                                   : TextDecoration.none,
-                              decorationColor: AppTheme.textMuted,
+                              decorationColor: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
                             ),
                           ),
                         ),
@@ -571,6 +574,7 @@ class _TodoScreenState extends State<TodoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<SettingsCubit>().state.settings.isDarkMode;
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
@@ -581,11 +585,11 @@ class _TodoScreenState extends State<TodoScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(_greeting(),
-                style: const TextStyle(
-                    color: AppTheme.textMuted, fontSize: 12)),
-            const Text('My Tasks',
                 style: TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: AppTheme.getMutedText(isDark), fontSize: 12)),
+            Text('My Tasks',
+                style: TextStyle(
+                    color: AppTheme.getPrimaryText(isDark),
                     fontWeight: FontWeight.bold,
                     fontSize: 22)),
           ],
@@ -613,8 +617,11 @@ class _TodoScreenState extends State<TodoScreen> {
           ),
         ],
       ),
-      body: Container(
-        decoration: AppTheme.backgroundDecoration,
+      body: BlocBuilder<SettingsCubit, SettingsState>(
+        builder: (context, settingsState) {
+          final isDark = settingsState.settings.isDarkMode;
+          return Container(
+            decoration: AppTheme.backgroundDecoration(isDark),
         child: BlocConsumer<TodoBloc, TodoState>(
           listener: (context, state) {
             if (state is TodoDeleted) {
@@ -699,6 +706,9 @@ class _TodoScreenState extends State<TodoScreen> {
                   return a.category.index.compareTo(b.category.index);
                 case TodoSortOrder.dateAdded:
                   return b.addedDate.compareTo(a.addedDate);
+                case TodoSortOrder.priority:
+                  // TODO: Handle this case.
+                  throw UnimplementedError();
               }
             });
 
@@ -733,9 +743,9 @@ class _TodoScreenState extends State<TodoScreen> {
                         kToolbarHeight +
                         8),
 
-                _buildStatsRow(todos),
-                _buildStreakBanner(todos),
-                _buildProgressBar(todos),
+                _buildStatsRow(todos, isDark),
+                _buildStreakBanner(todos, isDark),
+                _buildProgressBar(todos, isDark),
 
                 // Search
                 Padding(
@@ -743,23 +753,23 @@ class _TodoScreenState extends State<TodoScreen> {
                   child: TextField(
                     onChanged: (v) =>
                         context.read<TodoBloc>().add(SearchTodos(query: v)),
-                    style: const TextStyle(color: AppTheme.textPrimary),
+                    style: TextStyle(color: AppTheme.getPrimaryText(isDark)),
                     decoration: InputDecoration(
                       hintText: 'Search tasks...',
-                      hintStyle: const TextStyle(
-                          color: AppTheme.textMuted, fontSize: 14),
-                      prefixIcon: const Icon(Icons.search,
-                          color: AppTheme.textMuted, size: 20),
+                      hintStyle: TextStyle(
+                          color: AppTheme.getMutedText(isDark), fontSize: 14),
+                      prefixIcon: Icon(Icons.search,
+                          color: AppTheme.getMutedText(isDark), size: 20),
                       filled: true,
-                      fillColor: AppTheme.glassFill,
+                      fillColor: isDark ? AppTheme.glassFill : Colors.white.withOpacity(0.5),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                              color: AppTheme.glassBorder)),
+                          borderSide: BorderSide(
+                              color: isDark ? AppTheme.glassBorder : Colors.blueGrey.withOpacity(0.1))),
                       enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                              color: AppTheme.glassBorder)),
+                          borderSide: BorderSide(
+                              color: isDark ? AppTheme.glassBorder : Colors.blueGrey.withOpacity(0.1))),
                       focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
@@ -799,11 +809,11 @@ class _TodoScreenState extends State<TodoScreen> {
                           80,
                     ),
                     children: [
-                      _buildSection('⚠ OVERDUE', overdue),
-                      _buildSection('📅 TODAY', today),
-                      _buildSection('🟡 TOMORROW', tmrw),
-                      _buildSection('📦 UPCOMING', upcoming),
-                      _buildCompletedSection(completed),
+                      _buildSection('⚠ OVERDUE', overdue, isDark),
+                      _buildSection('📅 TODAY', today, isDark),
+                      _buildSection('🟡 TOMORROW', tmrw, isDark),
+                      _buildSection('📦 UPCOMING', upcoming, isDark),
+                      _buildCompletedSection(completed, isDark),
                     ],
                   ),
                 ),
@@ -811,8 +821,10 @@ class _TodoScreenState extends State<TodoScreen> {
             );
           },
         ),
-      ),
-      floatingActionButton: Container(
+      );
+    },
+  ),
+  floatingActionButton: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(32),
           boxShadow: [

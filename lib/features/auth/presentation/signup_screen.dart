@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo_app/features/todo/presentation/screens/app_theme.dart';
 
+import '../../settings/cubit/theme_cubit.dart';
 import '../bloc/auth_bloc.dart';
 import '../widgets/auth_widgets.dart';
 
@@ -44,6 +45,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<SettingsCubit>().state.settings.isDarkMode;
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         setState(() => _isLoading = state is AuthLoading);
@@ -52,7 +54,9 @@ class _SignupScreenState extends State<SignupScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Container(
-          decoration: AppTheme.backgroundDecoration,
+          width: double.infinity,
+          height: double.infinity,
+          decoration: AppTheme.backgroundDecoration(isDark),
           child: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
@@ -67,20 +71,20 @@ class _SignupScreenState extends State<SignupScreen> {
                   const SizedBox(height: 36),
 
                   // Header
-                  const Text(
+                  Text(
                     'Create\naccount ✨',
                     style: TextStyle(
-                      color: AppTheme.textPrimary,
+                      color: AppTheme.getPrimaryText(isDark),
                       fontSize: 38,
                       fontWeight: FontWeight.bold,
                       height: 1.2,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Start syncing your tasks across all devices',
                     style: TextStyle(
-                        color: AppTheme.textMuted, fontSize: 14),
+                        color: AppTheme.getMutedText(isDark), fontSize: 14),
                   ),
 
                   const SizedBox(height: 36),
@@ -127,7 +131,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         _obscurePassword
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
-                        color: AppTheme.textMuted,
+                        color: AppTheme.getMutedText(isDark),
                         size: 20,
                       ),
                       onPressed: () => setState(
@@ -147,7 +151,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         _obscureConfirm
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
-                        color: AppTheme.textMuted,
+                        color: AppTheme.getMutedText(isDark),
                         size: 20,
                       ),
                       onPressed: () => setState(
@@ -203,9 +207,9 @@ class _SignupScreenState extends State<SignupScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Already have an account? ',
+                      Text('Already have an account? ',
                           style: TextStyle(
-                              color: AppTheme.textMuted,
+                              color: AppTheme.getMutedText(isDark),
                               fontSize: 14)),
                       GestureDetector(
                         onTap: widget.onGoToLogin,

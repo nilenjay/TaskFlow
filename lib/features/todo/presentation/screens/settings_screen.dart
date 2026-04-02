@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:todo_app/features/focus/data/models/focus_model.dart';
 import 'package:todo_app/features/settings/cubit/theme_cubit.dart';
 import 'package:todo_app/features/todo/presentation/screens/app_theme.dart';
 import 'package:todo_app/features/todo/presentation/screens/animated_theme_toggle.dart';
@@ -36,20 +35,7 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           body: Container(
-            decoration: isDark
-                ? AppTheme.backgroundDecoration
-                : const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFEEF2FF),
-                  Color(0xFFF8FAFC),
-                  Color(0xFFEDE9FE),
-                ],
-                stops: [0.0, 0.5, 1.0],
-              ),
-            ),
+            decoration: AppTheme.backgroundDecoration(isDark),
             child: ListView(
               padding: EdgeInsets.fromLTRB(
                 20,
@@ -109,7 +95,7 @@ class SettingsScreen extends StatelessWidget {
                       onChanged: (_) => context
                           .read<SettingsCubit>()
                           .toggleNotifications(),
-                      activeColor: const Color(0xFF34D399),
+                      activeThumbColor: const Color(0xFF34D399),
                       activeTrackColor:
                       const Color(0xFF34D399).withOpacity(0.3),
                     ),

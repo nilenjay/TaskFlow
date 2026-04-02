@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo_app/features/todo/presentation/screens/app_theme.dart';
 
+import '../../settings/cubit/theme_cubit.dart';
 import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
 import '../widgets/auth_widgets.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -40,6 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<SettingsCubit>().state.settings.isDarkMode;
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         setState(() => _isLoading = state is AuthLoading);
@@ -48,7 +49,9 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Container(
-          decoration: AppTheme.backgroundDecoration,
+          width: double.infinity,
+          height: double.infinity,
+          decoration: AppTheme.backgroundDecoration(isDark),
           child: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
@@ -63,20 +66,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 36),
 
                   // Header
-                  const Text(
+                  Text(
                     'Welcome\nback 👋',
                     style: TextStyle(
-                      color: AppTheme.textPrimary,
+                      color: AppTheme.getPrimaryText(isDark),
                       fontSize: 38,
                       fontWeight: FontWeight.bold,
                       height: 1.2,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Sign in to sync your tasks across devices',
                     style: TextStyle(
-                        color: AppTheme.textMuted, fontSize: 14),
+                        color: AppTheme.getMutedText(isDark), fontSize: 14),
                   ),
 
                   const SizedBox(height: 40),
@@ -114,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         _obscurePassword
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
-                        color: AppTheme.textMuted,
+                        color: AppTheme.getMutedText(isDark),
                         size: 20,
                       ),
                       onPressed: () => setState(
@@ -166,9 +169,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Don't have an account? ",
+                      Text("Don't have an account? ",
                           style: TextStyle(
-                              color: AppTheme.textMuted,
+                              color: AppTheme.getMutedText(isDark),
                               fontSize: 14)),
                       GestureDetector(
                         onTap: widget.onGoToSignup,
@@ -191,6 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showForgotPassword(BuildContext ctx) {
+    final isDark = ctx.read<SettingsCubit>().state.settings.isDarkMode;
     final controller = TextEditingController();
     showModalBottomSheet(
       context: ctx,
@@ -220,15 +224,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text('Reset Password',
+              Text('Reset Password',
                   style: TextStyle(
-                      color: AppTheme.textPrimary,
+                      color: AppTheme.getPrimaryText(isDark),
                       fontSize: 18,
                       fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
-              const Text("We'll send a reset link to your email.",
+              Text("We'll send a reset link to your email.",
                   style: TextStyle(
-                      color: AppTheme.textMuted, fontSize: 13)),
+                      color: AppTheme.getMutedText(isDark), fontSize: 13)),
               const SizedBox(height: 20),
               AuthField(
                 controller: controller,

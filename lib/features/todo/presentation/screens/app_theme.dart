@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 class AppTheme {
   AppTheme._();
 
-  // ── Background gradient ─────────────────────────────────────────────────
-  static const backgroundGradient = LinearGradient(
+  // ── Dark Mode Gradient ────────────────────────────────────────────────
+  static const darkBackgroundGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
@@ -15,15 +15,39 @@ class AppTheme {
     stops: [0.0, 0.5, 1.0],
   );
 
+  // ── Light Mode Gradient ────────────────────────────────────────────────
+  static const lightBackgroundGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFFEEF2FF),
+      Color(0xFFF8FAFC),
+      Color(0xFFEDE9FE),
+    ],
+    stops: [0.0, 0.5, 1.0],
+  );
+
   // ── Accent ──────────────────────────────────────────────────────────────
   static const accent = Color(0xFF818CF8);        // indigo-400
   static const accentDim = Color(0xFF4F46E5);     // indigo-600
   static const accentGlow = Color(0x33818CF8);    // 20% accent for glows
 
   // ── Text ────────────────────────────────────────────────────────────────
+
+  // Dark (default)
+  static const textPrimaryDark   = Colors.white;
+  static const textSecondaryDark = Color(0xFFCBD5E1); // slate-300
+  static const textMutedDark     = Color(0xFF64748B); // slate-500
+
+  // Light
+  static const textPrimaryLight   = Color(0xFF1E293B); // slate-800
+  static const textSecondaryLight = Color(0xFF475569); // slate-600
+  static const textMutedLight     = Color(0xFF94A3B8); // slate-400
+
+  // Legacy (backward compatibility if needed, but discouraged)
   static const textPrimary   = Colors.white;
-  static const textSecondary = Color(0xFFCBD5E1); // slate-300
-  static const textMuted     = Color(0xFF64748B); // slate-500
+  static const textSecondary = Color(0xFFCBD5E1);
+  static const textMuted     = Color(0xFF64748B);
 
   // ── Glass card ──────────────────────────────────────────────────────────
   static const glassFill    = Color(0x12FFFFFF);  // white 7%
@@ -39,19 +63,30 @@ class AppTheme {
 
   /// Standard glass card decoration.
   static BoxDecoration glassCard({
+    required bool isDark,
     double radius = 16,
     Color? fill,
     Color? border,
   }) {
     return BoxDecoration(
-      color: fill ?? glassFill,
+      color: fill ?? (isDark ? glassFill : Colors.white.withOpacity(0.6)),
       borderRadius: BorderRadius.circular(radius),
-      border: Border.all(color: border ?? glassBorder, width: 1),
+      border: Border.all(
+        color: border ?? (isDark ? glassBorder : Colors.white.withOpacity(0.8)),
+        width: 1,
+      ),
     );
   }
 
   /// Gradient background for full-screen scaffold bodies.
-  static const backgroundDecoration = BoxDecoration(
-    gradient: backgroundGradient,
-  );
-}
+  static BoxDecoration backgroundDecoration(bool isDark) {
+    return BoxDecoration(
+      gradient: isDark ? darkBackgroundGradient : lightBackgroundGradient,
+    );
+  }
+
+  /// Get text colors based on theme.
+  static Color getPrimaryText(bool isDark) => isDark ? textPrimaryDark : textPrimaryLight;
+  static Color getSecondaryText(bool isDark) => isDark ? textSecondaryDark : textSecondaryLight;
+  static Color getMutedText(bool isDark) => isDark ? textMutedDark : textMutedLight;
+}

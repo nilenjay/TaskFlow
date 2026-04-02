@@ -4,7 +4,7 @@ import 'package:todo_app/features/focus/data/models/focus_model.dart';
 import 'package:todo_app/features/focus/presentation/bloc/focus_bloc/focus_bloc.dart';
 import 'package:todo_app/features/focus/presentation/bloc/focus_bloc/focus_event.dart';
 import 'package:todo_app/features/settings/cubit/theme_cubit.dart';
-import 'app_theme.dart';
+import 'package:todo_app/features/todo/presentation/screens/app_theme.dart';
 
 class FocusSetupScreen extends StatefulWidget {
   const FocusSetupScreen({super.key});
@@ -61,10 +61,9 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
 
   // ── Custom duration bottom sheet ─────────────────────────────────────────
 
-  void _showCustomDurationPicker() {
+  void _showCustomDurationPicker(bool isDark) {
     int hours = _durationMinutes ~/ 60;
     int minutes = _durationMinutes % 60;
-    // Round minutes to nearest 5
     minutes = (minutes ~/ 5) * 5;
 
     showModalBottomSheet(
@@ -73,9 +72,9 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
       isScrollControlled: true,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setSheetState) => Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFF1A1F3A),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A1F3A) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: EdgeInsets.fromLTRB(
             24, 20, 24,
@@ -85,23 +84,22 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Handle
               Center(
                 child: Container(
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: isDark ? Colors.white24 : Colors.black12,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
 
-              const Text(
+              Text(
                 'Custom Duration',
                 style: TextStyle(
-                  color: AppTheme.textPrimary,
+                  color: AppTheme.getPrimaryText(isDark),
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -109,12 +107,11 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
               const SizedBox(height: 6),
               Text(
                 'Set any duration from 5 minutes to 8 hours',
-                style: const TextStyle(
-                    color: AppTheme.textMuted, fontSize: 13),
+                style: TextStyle(
+                    color: AppTheme.getMutedText(isDark), fontSize: 13),
               ),
               const SizedBox(height: 28),
 
-              // Hours slider
               _SliderRow(
                 label: 'Hours',
                 value: hours,
@@ -122,12 +119,12 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
                 max: 8,
                 color: AppTheme.accent,
                 displayValue: '${hours}h',
+                isDark: isDark,
                 onChanged: (v) => setSheetState(() => hours = v),
               ),
 
               const SizedBox(height: 20),
 
-              // Minutes slider (steps of 5)
               _SliderRow(
                 label: 'Minutes',
                 value: minutes ~/ 5,
@@ -136,13 +133,13 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
                 divisions: 11,
                 color: const Color(0xFFA78BFA),
                 displayValue: '${minutes}m',
+                isDark: isDark,
                 onChanged: (v) =>
                     setSheetState(() => minutes = v * 5),
               ),
 
               const SizedBox(height: 20),
 
-              // Total preview pill
               Center(
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
@@ -206,9 +203,8 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, settingsState) {
-        // Load defaults once on first build
         _loadDefaults(settingsState);
-
+        final isDark = settingsState.settings.isDarkMode;
         final breaks = calculateBreaks(_durationMinutes, _selectedType);
         final isCustom = !_quickDurations.contains(_durationMinutes);
 
@@ -218,17 +214,17 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            title: const Text(
+            title: Text(
               'Focus Session',
               style: TextStyle(
-                color: AppTheme.textPrimary,
+                color: AppTheme.getPrimaryText(isDark),
                 fontWeight: FontWeight.bold,
                 fontSize: 22,
               ),
             ),
           ),
           body: Container(
-            decoration: AppTheme.backgroundDecoration,
+            decoration: AppTheme.backgroundDecoration(isDark),
             child: ListView(
               padding: EdgeInsets.fromLTRB(
                 20,
@@ -239,23 +235,22 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
                     24,
               ),
               children: [
-                // ── Session name ──────────────────────────────────────
-                _sectionLabel('SESSION NAME'),
+                _sectionLabel('SESSION NAME', isDark),
                 const SizedBox(height: 8),
                 Container(
-                  decoration: AppTheme.glassCard(radius: 14),
+                  decoration: AppTheme.glassCard(isDark: isDark, radius: 14),
                   child: TextField(
                     controller: _nameController,
-                    style: const TextStyle(
-                        color: AppTheme.textPrimary, fontSize: 15),
-                    decoration: const InputDecoration(
+                    style: TextStyle(
+                        color: AppTheme.getPrimaryText(isDark), fontSize: 15),
+                    decoration: InputDecoration(
                       hintText: 'e.g. Chapter 5 Review',
                       hintStyle: TextStyle(
-                          color: AppTheme.textMuted, fontSize: 14),
+                          color: AppTheme.getMutedText(isDark), fontSize: 14),
                       prefixIcon: Icon(Icons.edit_outlined,
-                          color: AppTheme.textMuted, size: 18),
+                          color: AppTheme.getMutedText(isDark), size: 18),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(
+                      contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 14),
                     ),
                   ),
@@ -263,8 +258,7 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
 
                 const SizedBox(height: 28),
 
-                // ── Focus type ────────────────────────────────────────
-                _sectionLabel('FOCUS TYPE'),
+                _sectionLabel('FOCUS TYPE', isDark),
                 const SizedBox(height: 12),
                 Row(
                   children: FocusType.values.map((type) {
@@ -284,12 +278,12 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
                           decoration: BoxDecoration(
                             color: selected
                                 ? cfg.color.withOpacity(0.18)
-                                : AppTheme.glassFill,
+                                : (isDark ? AppTheme.glassFill : Colors.white.withOpacity(0.5)),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: selected
                                   ? cfg.color.withOpacity(0.6)
-                                  : AppTheme.glassBorder,
+                                  : (isDark ? AppTheme.glassBorder : Colors.black.withOpacity(0.05)),
                               width: selected ? 1.5 : 1,
                             ),
                           ),
@@ -303,7 +297,7 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
                                 style: TextStyle(
                                   color: selected
                                       ? cfg.color
-                                      : AppTheme.textSecondary,
+                                      : AppTheme.getSecondaryText(isDark),
                                   fontSize: 12,
                                   fontWeight: selected
                                       ? FontWeight.w700
@@ -317,14 +311,13 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
                       ),
                     );
                   }).toList(),
-                ),
+                 ),
 
                 const SizedBox(height: 28),
 
-                // ── Duration ──────────────────────────────────────────
                 Row(
                   children: [
-                    Expanded(child: _sectionLabel('DURATION')),
+                    Expanded(child: _sectionLabel('DURATION', isDark)),
                     if (isCustom)
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -354,28 +347,28 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
                       return _DurationChip(
                         label: '${min}m',
                         selected: selected,
+                        isDark: isDark,
                         onTap: () =>
                             setState(() => _durationMinutes = min),
                       );
                     }),
-                    // Custom chip
                     _DurationChip(
                       label: isCustom
                           ? '$_durationMinutes m ✎'
                           : 'Custom ✎',
                       selected: isCustom,
+                      isDark: isDark,
                       accentColor: const Color(0xFFA78BFA),
-                      onTap: _showCustomDurationPicker,
+                      onTap: () => _showCustomDurationPicker(isDark),
                     ),
                   ],
                 ),
 
                 const SizedBox(height: 28),
 
-                // ── Break preview ─────────────────────────────────────
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: AppTheme.glassCard(radius: 14),
+                  decoration: AppTheme.glassCard(isDark: isDark, radius: 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -384,10 +377,10 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
                           const Text('⏱',
                               style: TextStyle(fontSize: 14)),
                           const SizedBox(width: 8),
-                          const Text(
+                          Text(
                             'Scheduled Breaks',
                             style: TextStyle(
-                              color: AppTheme.textSecondary,
+                              color: AppTheme.getSecondaryText(isDark),
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
                             ),
@@ -413,10 +406,10 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
                       ),
                       const SizedBox(height: 12),
                       if (breaks.isEmpty)
-                        const Text(
+                        Text(
                           'No breaks — session under 30 minutes.',
                           style: TextStyle(
-                              color: AppTheme.textMuted, fontSize: 13),
+                              color: AppTheme.getMutedText(isDark), fontSize: 13),
                         )
                       else
                         ...breaks.asMap().entries.map((e) {
@@ -438,8 +431,8 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
                                 const SizedBox(width: 10),
                                 Text(
                                   'Break ${i + 1}:  after ${b.afterMinutes}m  →  ${b.breakMinutes}m rest',
-                                  style: const TextStyle(
-                                    color: AppTheme.textMuted,
+                                  style: TextStyle(
+                                    color: AppTheme.getMutedText(isDark),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -453,7 +446,6 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
 
                 const SizedBox(height: 32),
 
-                // ── Start button ──────────────────────────────────────
                 GestureDetector(
                   onTap: () {
                     final name = _nameController.text.trim();
@@ -510,10 +502,10 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
     );
   }
 
-  Widget _sectionLabel(String text) => Text(
+  Widget _sectionLabel(String text, bool isDark) => Text(
     text,
-    style: const TextStyle(
-      color: AppTheme.textMuted,
+    style: TextStyle(
+      color: AppTheme.getMutedText(isDark),
       fontSize: 11,
       fontWeight: FontWeight.w600,
       letterSpacing: 1.0,
@@ -521,17 +513,17 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
   );
 }
 
-// ─── Duration chip ────────────────────────────────────────────────────────────
-
 class _DurationChip extends StatelessWidget {
   final String label;
   final bool selected;
+  final bool isDark;
   final Color? accentColor;
   final VoidCallback onTap;
 
   const _DurationChip({
     required this.label,
     required this.selected,
+    required this.isDark,
     required this.onTap,
     this.accentColor,
   });
@@ -548,17 +540,17 @@ class _DurationChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? color.withOpacity(0.2)
-              : AppTheme.glassFill,
+              : (isDark ? AppTheme.glassFill : Colors.white.withOpacity(0.5)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? color : AppTheme.glassBorder,
+            color: selected ? color : (isDark ? AppTheme.glassBorder : Colors.black.withOpacity(0.05)),
             width: selected ? 1.5 : 1,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? color : AppTheme.textSecondary,
+            color: selected ? color : AppTheme.getSecondaryText(isDark),
             fontSize: 13,
             fontWeight:
             selected ? FontWeight.w700 : FontWeight.normal,
@@ -569,8 +561,6 @@ class _DurationChip extends StatelessWidget {
   }
 }
 
-// ─── Slider row (shared with settings screen) ─────────────────────────────────
-
 class _SliderRow extends StatelessWidget {
   final String label;
   final int value;
@@ -579,6 +569,7 @@ class _SliderRow extends StatelessWidget {
   final int? divisions;
   final Color color;
   final String displayValue;
+  final bool isDark;
   final ValueChanged<int> onChanged;
 
   const _SliderRow({
@@ -588,6 +579,7 @@ class _SliderRow extends StatelessWidget {
     required this.max,
     required this.color,
     required this.displayValue,
+    required this.isDark,
     required this.onChanged,
     this.divisions,
   });
@@ -600,8 +592,8 @@ class _SliderRow extends StatelessWidget {
           width: 60,
           child: Text(
             label,
-            style: const TextStyle(
-                color: AppTheme.textSecondary, fontSize: 13),
+            style: TextStyle(
+                color: AppTheme.getSecondaryText(isDark), fontSize: 13),
           ),
         ),
         Expanded(

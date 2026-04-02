@@ -4,6 +4,7 @@ import 'package:todo_app/features/todo/data/models/todo_model.dart';
 import 'package:todo_app/features/todo/presentation/bloc/todo_bloc/todo_bloc.dart';
 import 'package:todo_app/features/todo/presentation/bloc/todo_bloc/todo_state.dart';
 import 'package:todo_app/features/todo/presentation/screens/app_theme.dart';
+import 'package:todo_app/features/settings/cubit/theme_cubit.dart';
 import 'package:todo_app/features/todo/presentation/screens/status_config.dart';
 import 'package:todo_app/features/todo/presentation/screens/streak_service.dart';
 
@@ -12,6 +13,8 @@ class StatisticsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<SettingsCubit>().state.settings.isDarkMode;
+
     return BlocBuilder<TodoBloc, TodoState>(
       builder: (context, state) {
         final todos = state is TodoLoaded
@@ -53,7 +56,7 @@ class StatisticsScreen extends StatelessWidget {
             ),
           ),
           body: Container(
-            decoration: AppTheme.backgroundDecoration,
+            decoration: AppTheme.backgroundDecoration(isDark),
             child: ListView(
               padding: EdgeInsets.fromLTRB(
                 16,
@@ -304,9 +307,11 @@ class _GlassSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<SettingsCubit>().state.settings.isDarkMode;
+
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard(radius: 16),
+      decoration: AppTheme.glassCard(isDark: isDark, radius: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

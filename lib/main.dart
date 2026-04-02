@@ -19,6 +19,8 @@ import 'features/settings/data/models/settings_model.dart';
 import 'features/todo/data/datasources/todo_local_datasource.dart';
 import 'features/todo/data/models/todo_model.dart';
 import 'features/todo/presentation/bloc/todo_bloc/todo_bloc.dart';
+import 'features/todo/presentation/bloc/todo_bloc/todo_event.dart';
+import 'features/todo/presentation/screens/app_theme.dart';
 import 'features/todo/presentation/screens/calendar_screen.dart';
 import 'features/todo/presentation/screens/settings_screen.dart';
 import 'features/todo/presentation/screens/splash_screen.dart';
@@ -83,9 +85,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, settingsState) {
-        SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-          systemNavigationBarColor: Color(0xFF0D1020),
-          systemNavigationBarIconBrightness: Brightness.light,
+        final isDark = settingsState.settings.isDarkMode;
+        
+        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+          systemNavigationBarColor: isDark ? const Color(0xFF0D1020) : Colors.white,
+          systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
         ));
 
         return MaterialApp(
@@ -166,94 +171,100 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    final focusState = context.watch<FocusBloc>().state;
-    final isFocusRunning =
-        _currentIndex == 2 && focusState is FocusRunning;
+    return BlocBuilder<SettingsCubit, SettingsState>(
+      builder: (context, settingsState) {
+        final isDark = settingsState.settings.isDarkMode;
+        final focusState = context.watch<FocusBloc>().state;
+        final isFocusRunning =
+            _currentIndex == 2 && focusState is FocusRunning;
 
-    const darkNavBg     = Color(0xFF0D1020);
-    const darkIndicator = Color(0xFF2A2D4A);
-    const darkIconUnsel = Color(0xFF64748B);
-    const darkIconSel   = Color(0xFF818CF8);
+        // Custom colors for BottomNav
+        final navBg = isDark ? const Color(0xFF0D1020) : const Color(0xFFFFFFFF);
+        final indicator = isDark ? const Color(0xFF2A2D4A) : AppTheme.accent.withOpacity(0.1);
+        final iconUnsel = isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
+        final iconSel = isDark ? const Color(0xFF818CF8) : const Color(0xFF4F46E5);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF020617),
-      extendBody: isFocusRunning,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
-      bottomNavigationBar: NavigationBarTheme(
-        data: isFocusRunning
-            ? NavigationBarThemeData(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          indicatorColor: Colors.white.withOpacity(0.18),
-          iconTheme: WidgetStateProperty.resolveWith((states) {
-            final sel = states.contains(WidgetState.selected);
-            return IconThemeData(
-                color: sel ? Colors.white : Colors.white60,
-                size: 24);
-          }),
-          labelTextStyle:
-          WidgetStateProperty.resolveWith((states) {
-            final sel = states.contains(WidgetState.selected);
-            return TextStyle(
-              color: sel ? Colors.white : Colors.white60,
-              fontWeight: sel ? FontWeight.w600 : FontWeight.normal,
-              fontSize: 12,
-            );
-          }),
-        )
-            : NavigationBarThemeData(
-          backgroundColor: darkNavBg,
-          shadowColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          indicatorColor: darkIndicator,
-          iconTheme: WidgetStateProperty.resolveWith((states) {
-            final sel = states.contains(WidgetState.selected);
-            return IconThemeData(
-                color: sel ? darkIconSel : darkIconUnsel,
-                size: 24);
-          }),
-          labelTextStyle:
-          WidgetStateProperty.resolveWith((states) {
-            final sel = states.contains(WidgetState.selected);
-            return TextStyle(
-              color: sel ? darkIconSel : darkIconUnsel,
-              fontWeight: sel ? FontWeight.w600 : FontWeight.normal,
-              fontSize: 12,
-            );
-          }),
-        ),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (i) =>
-              setState(() => _currentIndex = i),
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.check_box_outline_blank),
-              selectedIcon: Icon(Icons.check_box),
-              label: 'Tasks',
+        return Scaffold(
+          backgroundColor: isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
+          extendBody: isFocusRunning,
+          body: IndexedStack(
+            index: _currentIndex,
+            children: _pages,
+          ),
+          bottomNavigationBar: NavigationBarTheme(
+            data: isFocusRunning
+                ? NavigationBarThemeData(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              indicatorColor: Colors.white.withOpacity(0.18),
+              iconTheme: WidgetStateProperty.resolveWith((states) {
+                final sel = states.contains(WidgetState.selected);
+                return IconThemeData(
+                    color: sel ? Colors.white : Colors.white60,
+                    size: 24);
+              }),
+              labelTextStyle:
+              WidgetStateProperty.resolveWith((states) {
+                final sel = states.contains(WidgetState.selected);
+                return TextStyle(
+                  color: sel ? Colors.white : Colors.white60,
+                  fontWeight: sel ? FontWeight.w600 : FontWeight.normal,
+                  fontSize: 12,
+                );
+              }),
+            )
+                : NavigationBarThemeData(
+              backgroundColor: navBg,
+              shadowColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              indicatorColor: indicator,
+              iconTheme: WidgetStateProperty.resolveWith((states) {
+                final sel = states.contains(WidgetState.selected);
+                return IconThemeData(
+                    color: sel ? iconSel : iconUnsel,
+                    size: 24);
+              }),
+              labelTextStyle:
+              WidgetStateProperty.resolveWith((states) {
+                final sel = states.contains(WidgetState.selected);
+                return TextStyle(
+                  color: sel ? iconSel : iconUnsel,
+                  fontWeight: sel ? FontWeight.w600 : FontWeight.normal,
+                  fontSize: 12,
+                );
+              }),
             ),
-            NavigationDestination(
-              icon: Icon(Icons.calendar_month_outlined),
-              selectedIcon: Icon(Icons.calendar_month),
-              label: 'Calendar',
+            child: NavigationBar(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: (i) =>
+                  setState(() => _currentIndex = i),
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.check_box_outline_blank),
+                  selectedIcon: Icon(Icons.check_box),
+                  label: 'Tasks',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.calendar_month_outlined),
+                  selectedIcon: Icon(Icons.calendar_month),
+                  label: 'Calendar',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.timer_outlined),
+                  selectedIcon: Icon(Icons.timer),
+                  label: 'Focus',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.settings_outlined),
+                  selectedIcon: Icon(Icons.settings),
+                  label: 'Settings',
+                ),
+              ],
             ),
-            NavigationDestination(
-              icon: Icon(Icons.timer_outlined),
-              selectedIcon: Icon(Icons.timer),
-              label: 'Focus',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: 'Settings',
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

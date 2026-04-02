@@ -15,6 +15,7 @@ class AddTodo extends TodoEvent {
   final DateTime? startReminder;
   final TodoStatus status;
   final TodoCategory category;
+  final int priority;
 
   const AddTodo({
     required this.description,
@@ -23,11 +24,12 @@ class AddTodo extends TodoEvent {
     this.startReminder,
     this.status = TodoStatus.toDo,
     this.category = TodoCategory.personal,
+    this.priority = 2,
   });
 
   @override
   List<Object?> get props =>
-      [description, dueDate, reminderTime, startReminder, status, category];
+      [description, dueDate, reminderTime, startReminder, status, category, priority];
 }
 
 class DeleteTodo extends TodoEvent {
@@ -85,4 +87,10 @@ class ChangeSortOrder extends TodoEvent {
   List<Object?> get props => [sortOrder];
 }
 
-enum TodoSortOrder { dateAdded, dueDate, status, category }
+class SyncFromFirestore extends TodoEvent {
+  const SyncFromFirestore();
+  @override
+  List<Object?> get props => [];
+}
+
+enum TodoSortOrder { dateAdded, dueDate, status, category, priority }

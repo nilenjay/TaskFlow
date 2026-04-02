@@ -2,9 +2,11 @@ import 'dart:async';
 import 'package:todo_app/core/notifications/notification_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:todo_app/features/todo/data/datasources/todo_local_datasource.dart';
+import 'package:todo_app/features/todo/data/datasources/todo_firestore_datasource.dart';
 import 'package:todo_app/features/todo/data/models/todo_model.dart';
 import 'package:todo_app/features/todo/presentation/bloc/todo_bloc/todo_event.dart';
 import 'package:todo_app/features/todo/presentation/bloc/todo_bloc/todo_state.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../data/models/todo_filter.dart';
 
 class TodoBloc extends Bloc<TodoEvent, TodoState> {
@@ -20,6 +22,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     on<SearchTodos>(_searchTodos);
     on<EditTodo>(_editTodo);
     on<ChangeSortOrder>(_changeSortOrder);
+    on<SyncFromFirestore>(_onSyncFromFirestore);
 
     add(const LoadTodos());
   }
@@ -49,13 +52,20 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       dueDate: event.dueDate,
       reminderTime: event.reminderTime,
       startReminder: event.startReminder,
-      status: event.status,       // ← was priority
+      status: event.status,
       category: event.category,
+      priority: event.priority,
     );
 
     final newTodos = [...oldTodos, newTodo];
     await _localDataSource.saveTodos(newTodos);
     await _scheduleReminder(newTodo);
+
+    // Sync to Firestore if logged in
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      await TodoFirestoreDataSource.instance.saveTodo(uid, newTodo);
+    }
 
     emit(TodoLoaded(
       todos: newTodos,
@@ -68,19 +78,24 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
   Future<void> _deleteTodo(
       DeleteTodo event, Emitter<TodoState> emit) async {
     List<TodoModel> oldTodos = [];
-    if (state is TodoLoaded) oldTodos = (state as TodoLoaded).todos;
-    else if (state is TodoDeleted) oldTodos = (state as TodoDeleted).todos;
+    if (state is TodoLoaded) {
+      oldTodos = (state as TodoLoaded).todos;
+    } else if (state is TodoDeleted) oldTodos = (state as TodoDeleted).todos;
 
-    final deletedTodo = oldTodos.firstWhere((todo) => todo.id == event.id);
     final newTodos = oldTodos.where((todo) => todo.id != event.id).toList();
 
     await _localDataSource.saveTodos(newTodos);
     await NotificationService.instance.cancelNotification(event.id.hashCode);
     await NotificationService.instance
-        .cancelNotification((event.id + "_start").hashCode);
+        .cancelNotification(("${event.id}_start").hashCode);
 
-    emit(TodoDeleted(
-      deletedTodo: deletedTodo,
+    // Sync to Firestore if logged in
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      await TodoFirestoreDataSource.instance.deleteTodo(uid, event.id);
+    }
+
+    emit(TodoLoaded(
       todos: newTodos,
       sortOrder: _currentSort,
     ));
@@ -89,28 +104,36 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
   Future<void> _toggleTodoStatus(
       ToggleTodoStatus event, Emitter<TodoState> emit) async {
     List<TodoModel> oldTodos = [];
-    if (state is TodoLoaded) oldTodos = (state as TodoLoaded).todos;
-    else if (state is TodoDeleted) oldTodos = (state as TodoDeleted).todos;
+    if (state is TodoLoaded) {
+      oldTodos = (state as TodoLoaded).todos;
+    } else if (state is TodoDeleted) oldTodos = (state as TodoDeleted).todos;
 
     final toggled = oldTodos.firstWhere((t) => t.id == event.id);
     final newIsComplete = !toggled.isComplete;
-
-    // When toggling done, also sync status
     final newStatus = newIsComplete ? TodoStatus.done : TodoStatus.toDo;
 
+    final updatedTodo = toggled.copyWith(isComplete: newIsComplete, status: newStatus);
+
     final newTodos = oldTodos.map((todo) => todo.id == event.id
-        ? todo.copyWith(isComplete: newIsComplete, status: newStatus)
+        ? updatedTodo
         : todo).toList();
 
     if (newIsComplete) {
       await NotificationService.instance.cancelNotification(event.id.hashCode);
       await NotificationService.instance
-          .cancelNotification((event.id + "_start").hashCode);
+          .cancelNotification(("${event.id}_start").hashCode);
     } else {
-      await _scheduleReminder(toggled.copyWith(isComplete: false));
+      await _scheduleReminder(updatedTodo);
     }
 
     await _localDataSource.saveTodos(newTodos);
+
+    // Sync to Firestore if logged in
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      await TodoFirestoreDataSource.instance.saveTodo(uid, updatedTodo);
+    }
+
     emit(TodoLoaded(todos: newTodos, sortOrder: _currentSort));
   }
 
@@ -123,19 +146,28 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
   Future<void> _restoreTodo(
       RestoreTodo event, Emitter<TodoState> emit) async {
     List<TodoModel> oldTodos = [];
-    if (state is TodoLoaded) oldTodos = (state as TodoLoaded).todos;
-    else if (state is TodoDeleted) oldTodos = (state as TodoDeleted).todos;
+    if (state is TodoLoaded) {
+      oldTodos = (state as TodoLoaded).todos;
+    } else if (state is TodoDeleted) oldTodos = (state as TodoDeleted).todos;
 
     final newTodos = [...oldTodos, event.todo];
     await _localDataSource.saveTodos(newTodos);
+
+    // Sync to Firestore if logged in
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      await TodoFirestoreDataSource.instance.saveTodo(uid, event.todo);
+    }
+
     emit(TodoLoaded(todos: newTodos, sortOrder: _currentSort));
   }
 
   Future<void> _changeFilter(
       ChangeFilter event, Emitter<TodoState> emit) async {
     List<TodoModel> oldTodos = [];
-    if (state is TodoLoaded) oldTodos = (state as TodoLoaded).todos;
-    else if (state is TodoDeleted) oldTodos = (state as TodoDeleted).todos;
+    if (state is TodoLoaded) {
+      oldTodos = (state as TodoLoaded).todos;
+    } else if (state is TodoDeleted) oldTodos = (state as TodoDeleted).todos;
 
     emit(TodoLoaded(
       todos: oldTodos,
@@ -207,7 +239,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     final oldTodo = oldTodos.firstWhere((t) => t.id == event.updatedTodo.id);
     await NotificationService.instance.cancelNotification(oldTodo.id.hashCode);
     await NotificationService.instance
-        .cancelNotification((oldTodo.id + "_start").hashCode);
+        .cancelNotification(("${oldTodo.id}_start").hashCode);
 
     final newTodos = oldTodos.map((todo) {
       if (todo.id == event.updatedTodo.id) return event.updatedTodo;
@@ -219,6 +251,13 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
 
     await _localDataSource.saveTodos(newTodos);
+
+    // Sync to Firestore if logged in
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      await TodoFirestoreDataSource.instance.saveTodo(uid, event.updatedTodo);
+    }
+
     emit(TodoLoaded(
       todos: newTodos,
       filter: currentFilter,
@@ -227,11 +266,28 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     ));
   }
 
+  Future<void> _onSyncFromFirestore(
+      SyncFromFirestore event, Emitter<TodoState> emit) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final remoteTodos = await TodoFirestoreDataSource.instance.fetchTodos(uid);
+    if (remoteTodos.isNotEmpty) {
+      // Merge logic: For now, we'll replace local with remote if remote is not empty
+      // A better way would be based on updatedAt timestamps
+      await _localDataSource.saveTodos(remoteTodos);
+      emit(TodoLoaded(
+        todos: remoteTodos,
+        sortOrder: _currentSort,
+      ));
+    }
+  }
+
   Future<void> _scheduleReminder(TodoModel todo) async {
     if (todo.startReminder != null) {
       if (todo.startReminder!.isAfter(DateTime.now())) {
         await NotificationService.instance.scheduleNotification(
-          id: (todo.id + "_start").hashCode,
+          id: ("${todo.id}_start").hashCode,
           title: "Start Task",
           body: "Start working on: ${todo.description}",
           scheduledTime: todo.startReminder!,
@@ -241,7 +297,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       final startTime = _calculateSmartStartReminder(todo.dueDate);
       if (startTime != null && startTime.isAfter(DateTime.now())) {
         await NotificationService.instance.scheduleNotification(
-          id: (todo.id + "_start").hashCode,
+          id: ("${todo.id}_start").hashCode,
           title: "Start Task",
           body: "Start working on: ${todo.description}",
           scheduledTime: startTime,
