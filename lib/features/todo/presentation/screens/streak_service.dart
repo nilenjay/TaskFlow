@@ -29,8 +29,6 @@ class StreakService {
           currentStreak: 0, bestStreak: 0, totalDone: 0);
     }
 
-    // Collect unique days that had completions (using addedDate as proxy
-    // since we don't store completedDate — use dueDate if available and past)
     final completionDays = completed.map((t) {
       final d = t.dueDate ?? t.addedDate;
       return DateTime(d.year, d.month, d.day);
@@ -39,7 +37,6 @@ class StreakService {
 
     DateTime? lastActive = completionDays.last;
 
-    // Build streak working backwards from today
     final today = DateTime(
         DateTime.now().year, DateTime.now().month, DateTime.now().day);
     final yesterday = today.subtract(const Duration(days: 1));
@@ -48,12 +45,10 @@ class StreakService {
     int bestStreak = 0;
     int runningStreak = 1;
 
-    // Check if streak is still alive (completed today or yesterday)
     final streakAlive = completionDays.contains(today) ||
         completionDays.contains(yesterday);
 
     if (streakAlive) {
-      // Count backwards from today
       DateTime check = completionDays.contains(today) ? today : yesterday;
       currentStreak = 1;
       for (int i = 1; i < 365; i++) {
@@ -66,7 +61,6 @@ class StreakService {
       }
     }
 
-    // Calculate best streak across all history
     for (int i = 1; i < completionDays.length; i++) {
       final diff = completionDays[i].difference(completionDays[i - 1]).inDays;
       if (diff == 1) {

@@ -3,7 +3,6 @@ import 'package:hive/hive.dart';
 
 part 'todo_model.g.dart';
 
-// ─── Category enum ────────────────────────────────────────────────────────────
 
 @HiveType(typeId: 4)
 enum TodoCategory {
@@ -15,7 +14,6 @@ enum TodoCategory {
   @HiveField(5) other,
 }
 
-// ─── Status enum ──────────────────────────────────────────────────────────────
 
 @HiveType(typeId: 5)
 enum TodoStatus {
@@ -28,7 +26,6 @@ enum TodoStatus {
   @HiveField(6) rework,
 }
 
-// ─── TodoModel ────────────────────────────────────────────────────────────────
 
 @HiveType(typeId: 0)
 class TodoModel extends Equatable {

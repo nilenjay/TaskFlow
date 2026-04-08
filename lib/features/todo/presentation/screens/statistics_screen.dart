@@ -65,7 +65,6 @@ class StatisticsScreen extends StatelessWidget {
                 32,
               ),
               children: [
-                // ── Top stat cards ────────────────────────────────────
                 Row(
                   children: [
                     _StatCard(
@@ -93,7 +92,6 @@ class StatisticsScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // ── Completion rate ───────────────────────────────────
                 _GlassSection(
                   title: 'Completion Rate',
                   child: Column(
@@ -137,7 +135,6 @@ class StatisticsScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // ── Streak ────────────────────────────────────────────
                 _GlassSection(
                   title: 'Streak',
                   child: Row(
@@ -159,7 +156,6 @@ class StatisticsScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // ── Completed vs Pending ──────────────────────────────
                 _GlassSection(
                   title: 'Completed vs Pending',
                   child: _BarChart(
@@ -173,7 +169,6 @@ class StatisticsScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // ── Tasks by Status ───────────────────────────────────
                 _GlassSection(
                   title: 'Tasks by Status',
                   child: _BarChart(
@@ -190,7 +185,6 @@ class StatisticsScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // ── Tasks by Category ─────────────────────────────────
                 _GlassSection(
                   title: 'Tasks by Category',
                   child: _BarChart(
@@ -252,7 +246,6 @@ class StatisticsScreen extends StatelessWidget {
   );
 }
 
-// ─── Stat card ────────────────────────────────────────────────────────────────
 
 class _StatCard extends StatelessWidget {
   final String label;
@@ -297,7 +290,6 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ─── Glass section ────────────────────────────────────────────────────────────
 
 class _GlassSection extends StatelessWidget {
   final String title;
@@ -329,7 +321,6 @@ class _GlassSection extends StatelessWidget {
   }
 }
 
-// ─── Bar chart ────────────────────────────────────────────────────────────────
 
 class _Bar {
   final String label;

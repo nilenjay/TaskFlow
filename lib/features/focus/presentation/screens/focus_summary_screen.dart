@@ -94,7 +94,6 @@ class _FocusSummaryScreenState extends State<FocusSummaryScreen>
                     24 + kBottomNavigationBarHeight + MediaQuery.of(context).padding.bottom,
                   ),
                   children: [
-                    // ── Completion card ───────────────────────────────────────
                     Container(
                       padding: const EdgeInsets.all(28),
                       decoration: BoxDecoration(
@@ -180,7 +179,6 @@ class _FocusSummaryScreenState extends State<FocusSummaryScreen>
 
                     const SizedBox(height: 28),
 
-                    // ── Animated stat cards ───────────────────────────────────
                     Row(
                       children: [
                         _AnimatedStatCard(
@@ -211,7 +209,6 @@ class _FocusSummaryScreenState extends State<FocusSummaryScreen>
 
                     const SizedBox(height: 32),
 
-                    // ── Star rating ───────────────────────────────────────────
                     Text('Rate this session',
                         style: TextStyle(
                             color: AppTheme.getPrimaryText(isDark),
@@ -258,7 +255,6 @@ class _FocusSummaryScreenState extends State<FocusSummaryScreen>
 
                     const SizedBox(height: 36),
 
-                    // ── New session button ────────────────────────────────────
                     FilledButton(
                       onPressed: () =>
                           context.read<FocusBloc>().add(const ResetSession()),

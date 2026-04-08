@@ -32,7 +32,6 @@ const int _schemaVersion = 3;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -52,7 +51,6 @@ Future<void> main() async {
   Hive.registerAdapter(TodoCategoryAdapter());
   Hive.registerAdapter(TodoStatusAdapter());
 
-  // Schema migration guard
   final metaBox = await Hive.openBox<int>('_meta');
   final storedVersion = metaBox.get('schemaVersion', defaultValue: 0)!;
   if (storedVersion != _schemaVersion) {
@@ -123,7 +121,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// ─── Root — routes between Auth and AppShell ──────────────────────────────────
 
 class _Root extends StatelessWidget {
   const _Root();
@@ -132,7 +129,6 @@ class _Root extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        // When user logs in, trigger a Firestore sync
         if (state is AuthAuthenticated) {
           context.read<TodoBloc>().add(const SyncFromFirestore());
         }
@@ -150,7 +146,6 @@ class _Root extends StatelessWidget {
   }
 }
 
-// ─── AppShell ─────────────────────────────────────────────────────────────────
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -178,7 +173,6 @@ class _AppShellState extends State<AppShell> {
         final isFocusRunning =
             _currentIndex == 2 && focusState is FocusRunning;
 
-        // Custom colors for BottomNav
         final navBg = isDark ? const Color(0xFF0D1020) : const Color(0xFFFFFFFF);
         final indicator = isDark ? const Color(0xFF2A2D4A) : AppTheme.accent.withOpacity(0.1);
         final iconUnsel = isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);

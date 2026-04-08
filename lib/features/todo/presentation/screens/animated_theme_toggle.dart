@@ -64,7 +64,6 @@ class _AnimatedThemeToggleState extends State<AnimatedThemeToggle>
     const padding = 4.0;
     const travel = width - thumbSize - padding * 2;
 
-    // Track colours
     const darkTrack = Color(0xFF2D3561);   // deep indigo — night
     const lightTrack = Color(0xFFFFB347);  // warm amber — day
 
@@ -82,7 +81,6 @@ class _AnimatedThemeToggleState extends State<AnimatedThemeToggle>
             height: height,
             child: Stack(
               children: [
-                // Track
                 Container(
                   width: width,
                   height: height,
@@ -97,7 +95,6 @@ class _AnimatedThemeToggleState extends State<AnimatedThemeToggle>
                       ),
                     ],
                   ),
-                  // Stars (visible in dark mode)
                   child: Opacity(
                     opacity: (1 - _trackColorAnim.value).clamp(0.0, 1.0),
                     child: Padding(
@@ -117,7 +114,6 @@ class _AnimatedThemeToggleState extends State<AnimatedThemeToggle>
                   ),
                 ),
 
-                // Rays (visible in light mode)
                 Opacity(
                   opacity: _trackColorAnim.value.clamp(0.0, 1.0),
                   child: Padding(
@@ -140,7 +136,6 @@ class _AnimatedThemeToggleState extends State<AnimatedThemeToggle>
                   ),
                 ),
 
-                // Thumb
                 Positioned(
                   left: thumbX,
                   top: padding,

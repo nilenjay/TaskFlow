@@ -11,7 +11,6 @@ class FocusBloc extends Bloc<FocusEvent, FocusState> {
 
   Timer? _ticker;
 
-  // Runtime-only (not in Equatable state to avoid redundant rebuilds)
   List<BreakInterval> _breaks = [];
   int _focusElapsedSeconds = 0;
 
@@ -29,7 +28,6 @@ class FocusBloc extends Bloc<FocusEvent, FocusState> {
     add(const LoadSessions());
   }
 
-  // ─── Load ──────────────────────────────────────────────────────────────────
 
   Future<void> _loadSessions(
       LoadSessions event, Emitter<FocusState> emit) async {
@@ -37,7 +35,6 @@ class FocusBloc extends Bloc<FocusEvent, FocusState> {
     emit(FocusInitial(sessions: sessions));
   }
 
-  // ─── Start ─────────────────────────────────────────────────────────────────
 
   Future<void> _startSession(
       StartSession event, Emitter<FocusState> emit) async {
@@ -65,7 +62,6 @@ class FocusBloc extends Bloc<FocusEvent, FocusState> {
     _startTicker();
   }
 
-  // ─── Tick ──────────────────────────────────────────────────────────────────
 
   Future<void> _timerTicked(
       TimerTicked event, Emitter<FocusState> emit) async {
@@ -80,17 +76,14 @@ class FocusBloc extends Bloc<FocusEvent, FocusState> {
       _focusElapsedSeconds++;
     }
 
-    // Session complete
     if (newElapsed >= current.totalSeconds) {
       _cancelTicker();
       await _completeSession(current, emit);
       return;
     }
 
-    // Phase transition
     if (newPhaseLeft <= 0) {
       if (current.phase == SessionPhase.focus) {
-        // focus → break
         final breakDuration =
             _breaks[current.currentBreakIndex].breakMinutes * 60;
 
@@ -108,20 +101,17 @@ class FocusBloc extends Bloc<FocusEvent, FocusState> {
           phase: SessionPhase.breakTime,
         ));
       } else {
-        // break → focus
         await _transitionToFocus(current, newElapsed, emit);
       }
       return;
     }
 
-    // Normal tick
     emit(current.copyWith(
       elapsedSeconds: newElapsed,
       phaseSecondsLeft: newPhaseLeft,
     ));
   }
 
-  // ─── Skip Break ────────────────────────────────────────────────────────────
 
   Future<void> _skipBreak(SkipBreak event, Emitter<FocusState> emit) async {
     if (state is! FocusRunning) return;
@@ -138,7 +128,6 @@ class FocusBloc extends Bloc<FocusEvent, FocusState> {
     await _transitionToFocus(current, current.elapsedSeconds, emit);
   }
 
-  // ─── Shared: break → focus transition ─────────────────────────────────────
 
   Future<void> _transitionToFocus(
       FocusRunning current, int newElapsed, Emitter<FocusState> emit) async {
@@ -166,7 +155,6 @@ class FocusBloc extends Bloc<FocusEvent, FocusState> {
     ));
   }
 
-  // ─── Pause / Resume ────────────────────────────────────────────────────────
 
   Future<void> _pauseSession(
       PauseSession event, Emitter<FocusState> emit) async {
@@ -182,7 +170,6 @@ class FocusBloc extends Bloc<FocusEvent, FocusState> {
     _startTicker();
   }
 
-  // ─── End ───────────────────────────────────────────────────────────────────
 
   Future<void> _endSession(
       EndSession event, Emitter<FocusState> emit) async {
@@ -191,7 +178,6 @@ class FocusBloc extends Bloc<FocusEvent, FocusState> {
     await _completeSession(state as FocusRunning, emit);
   }
 
-  // ─── Reset ─────────────────────────────────────────────────────────────────
 
   Future<void> _resetSession(
       ResetSession event, Emitter<FocusState> emit) async {
@@ -209,7 +195,6 @@ class FocusBloc extends Bloc<FocusEvent, FocusState> {
     emit(FocusInitial(sessions: sessions));
   }
 
-  // ─── Rate ──────────────────────────────────────────────────────────────────
 
   Future<void> _rateSession(
       RateSession event, Emitter<FocusState> emit) async {
@@ -229,7 +214,6 @@ class FocusBloc extends Bloc<FocusEvent, FocusState> {
     ));
   }
 
-  // ─── Internal helpers ──────────────────────────────────────────────────────
 
   void _startTicker() {
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {

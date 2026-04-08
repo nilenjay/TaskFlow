@@ -59,7 +59,6 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
     super.dispose();
   }
 
-  // ── Custom duration bottom sheet ─────────────────────────────────────────
 
   void _showCustomDurationPicker(bool isDark) {
     int hours = _durationMinutes ~/ 60;

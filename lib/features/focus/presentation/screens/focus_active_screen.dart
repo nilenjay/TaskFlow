@@ -7,7 +7,6 @@ import 'package:todo_app/features/focus/presentation/bloc/focus_bloc/focus_bloc.
 import 'package:todo_app/features/focus/presentation/bloc/focus_bloc/focus_event.dart';
 import 'package:todo_app/features/focus/presentation/bloc/focus_bloc/focus_state.dart';
 
-// ─── Quotes library ───────────────────────────────────────────────────────────
 
 const _studyQuotes = [
   '"The more that you read, the more things you will know." — Dr. Seuss',
@@ -53,12 +52,10 @@ List<String> _quotesForType(FocusType type) {
   }
 }
 
-// ─── Focus colors ─────────────────────────────────────────────────────────────
 
 const _focusGradientColors = [Color(0xFF4F46E5), Color(0xFF7C3AED)]; // indigo→violet
 const _breakGradientColors = [Color(0xFF059669), Color(0xFF0D9488)]; // emerald→teal
 
-// ─── Main screen ──────────────────────────────────────────────────────────────
 
 class FocusActiveScreen extends StatefulWidget {
   final FocusRunning state;
@@ -70,15 +67,12 @@ class FocusActiveScreen extends StatefulWidget {
 
 class _FocusActiveScreenState extends State<FocusActiveScreen>
     with TickerProviderStateMixin {
-  // Gradient background animation
   late AnimationController _gradientController;
   late Animation<double> _gradientAnimation;
 
-  // Pulse animation on timer ring
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
-  // Quote fade animation
   late AnimationController _quoteController;
   late Animation<double> _quoteOpacity;
 
@@ -86,7 +80,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
   int _lastQuoteChangeSec = 0;
   static const _quoteIntervalSec = 120; // change every 2 minutes
 
-  // Phase transition overlay
   bool _showingOverlay = false;
   String _overlayMessage = '';
   late AnimationController _overlayController;
@@ -98,7 +91,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
   void initState() {
     super.initState();
 
-    // Gradient
     _gradientController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -111,7 +103,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
       _gradientController.value = 1.0;
     }
 
-    // Pulse
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -120,7 +111,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    // Quote fade
     _quoteController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -131,7 +121,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
     );
     _quoteController.forward();
 
-    // Overlay
     _overlayController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
@@ -143,7 +132,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
 
     _lastPhase = widget.state.phase;
 
-    // Pick random starting quote
     final quotes = _quotesForType(widget.state.focusType);
     _quoteIndex = Random().nextInt(quotes.length);
   }
@@ -152,20 +140,17 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
   void didUpdateWidget(FocusActiveScreen old) {
     super.didUpdateWidget(old);
 
-    // Phase changed — trigger overlay + gradient
     if (widget.state.phase != _lastPhase) {
       _lastPhase = widget.state.phase;
       _triggerPhaseTransition(widget.state.phase);
     }
 
-    // Rotate quote every N seconds
     final elapsed = widget.state.elapsedSeconds;
     if (elapsed - _lastQuoteChangeSec >= _quoteIntervalSec) {
       _lastQuoteChangeSec = elapsed;
       _rotateQuote();
     }
 
-    // Pause pulse when paused
     if (widget.state.isPaused && _pulseController.isAnimating) {
       _pulseController.stop();
     } else if (!widget.state.isPaused && !_pulseController.isAnimating) {
@@ -289,7 +274,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
 
     return Stack(
       children: [
-        // ── Animated gradient background ────────────────────────────────
         AnimatedBuilder(
           animation: _gradientAnimation,
           builder: (context, _) {
@@ -312,7 +296,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
           },
         ),
 
-        // ── Main content ────────────────────────────────────────────────
         Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(
@@ -340,7 +323,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
               children: [
                 const SizedBox(height: 8),
 
-                // ── Overall progress bar ────────────────────────────────
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -374,7 +356,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
 
                 const SizedBox(height: 32),
 
-                // ── Phase label ─────────────────────────────────────────
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 400),
                   child: Text(
@@ -391,7 +372,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
 
                 const SizedBox(height: 28),
 
-                // ── Pulsing circular timer ──────────────────────────────
                 AnimatedBuilder(
                   animation: _pulseAnimation,
                   builder: (context, child) => Transform.scale(
@@ -440,7 +420,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
 
                 const SizedBox(height: 28),
 
-                // ── Break dots ──────────────────────────────────────────
                 if (state.totalBreaks > 0) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -472,7 +451,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
                   const SizedBox(height: 20),
                 ],
 
-                // ── Quote (fades in/out) ─────────────────────────────────
                 FadeTransition(
                   opacity: _quoteOpacity,
                   child: Padding(
@@ -492,11 +470,9 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
 
                 const Spacer(),
 
-                // ── Controls ────────────────────────────────────────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Skip break (only during break phase)
                     if (!isFocus) ...[
                       OutlinedButton.icon(
                         onPressed: () {
@@ -521,7 +497,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
                       const SizedBox(width: 16),
                     ],
 
-                    // Pause / Resume
                     GestureDetector(
                       onTap: () {
                         HapticFeedback.lightImpact();
@@ -563,8 +538,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
                   ],
                 ),
 
-                // kBottomNavigationBarHeight (56) + system gesture inset
-                // + extra breathing room so the button clears the nav bar.
                 SizedBox(
                   height: kBottomNavigationBarHeight +
                       MediaQuery.of(context).padding.bottom +
@@ -575,7 +548,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
           ),
         ),
 
-        // ── Phase transition overlay ────────────────────────────────────
         if (_showingOverlay)
           FadeTransition(
             opacity: _overlayOpacity,
@@ -597,7 +569,6 @@ class _FocusActiveScreenState extends State<FocusActiveScreen>
   }
 }
 
-// ─── Ring painter ─────────────────────────────────────────────────────────────
 
 class _RingPainter extends CustomPainter {
   final double progress;

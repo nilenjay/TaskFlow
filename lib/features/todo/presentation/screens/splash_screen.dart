@@ -27,7 +27,6 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Logo pops in
     _logoController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 700),
@@ -42,7 +41,6 @@ class _SplashScreenState extends State<SplashScreen>
           curve: const Interval(0.0, 0.4, curve: Curves.easeIn)),
     );
 
-    // App name slides up
     _textController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -57,7 +55,6 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _textController, curve: Curves.easeOut),
     );
 
-    // Tagline fades in
     _taglineController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
@@ -66,7 +63,6 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _taglineController, curve: Curves.easeOut),
     );
 
-    // Shimmer on logo
     _shimmerController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -75,7 +71,6 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _shimmerController, curve: Curves.easeInOut),
     );
 
-    // Sequence
     _logoController.forward().then((_) {
       _textController.forward().then((_) {
         _taglineController.forward();
@@ -111,7 +106,6 @@ class _SplashScreenState extends State<SplashScreen>
         ),
         child: Stack(
           children: [
-            // Background glow circles
             Positioned(
               top: -100,
               right: -80,
@@ -137,12 +131,10 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
 
-            // Main content
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo
                   AnimatedBuilder(
                     animation: _shimmerController,
                     builder: (context, child) => ScaleTransition(
@@ -186,7 +178,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                   const SizedBox(height: 28),
 
-                  // App name
                   SlideTransition(
                     position: _textSlide,
                     child: FadeTransition(
@@ -205,7 +196,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                   const SizedBox(height: 10),
 
-                  // Tagline
                   FadeTransition(
                     opacity: _taglineOpacity,
                     child: const Text(
@@ -222,7 +212,6 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
 
-            // Loading indicator at bottom
             Positioned(
               bottom: 60,
               left: 0,

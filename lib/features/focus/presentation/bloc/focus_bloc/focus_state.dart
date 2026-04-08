@@ -8,7 +8,6 @@ abstract class FocusState extends Equatable {
   List<Object?> get props => [];
 }
 
-// ─── Initial (setup screen) ───────────────────────────────────────────────────
 
 class FocusInitial extends FocusState {
   final List<SessionLog> sessions;
@@ -19,7 +18,6 @@ class FocusInitial extends FocusState {
   List<Object?> get props => [sessions];
 }
 
-// ─── Running (active timer screen) ───────────────────────────────────────────
 
 class FocusRunning extends FocusState {
   final String sessionName;
@@ -78,7 +76,6 @@ class FocusRunning extends FocusState {
   ];
 }
 
-// ─── Completed (summary screen) ───────────────────────────────────────────────
 
 class FocusCompleted extends FocusState {
   final SessionLog session;

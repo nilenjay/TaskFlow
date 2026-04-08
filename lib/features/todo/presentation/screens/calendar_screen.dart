@@ -117,7 +117,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         height: MediaQuery.of(context).padding.top +
                             kToolbarHeight),
 
-                    // ── Month navigation ──────────────────────────────────
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 4),
@@ -159,7 +158,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                     const SizedBox(height: 8),
 
-                    // ── Weekday headers ───────────────────────────────────
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Row(
@@ -181,7 +179,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                     const SizedBox(height: 6),
 
-                    // ── Calendar grid ─────────────────────────────────────
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: GridView.builder(
@@ -277,7 +274,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           height: 1),
                     ),
 
-                    // ── Task list ─────────────────────────────────────────
                     Expanded(
                       child: ListView(
                         padding: EdgeInsets.fromLTRB(
@@ -316,7 +312,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 }
 
-// ─── Dot ──────────────────────────────────────────────────────────────────────
 
 class _Dot extends StatelessWidget {
   final Color color;
@@ -332,7 +327,6 @@ class _Dot extends StatelessWidget {
   }
 }
 
-// ─── Task section ─────────────────────────────────────────────────────────────
 
 class _TaskSection extends StatelessWidget {
   final IconData icon;
@@ -394,7 +388,6 @@ class _TaskSection extends StatelessWidget {
   }
 }
 
-// ─── Calendar tile ────────────────────────────────────────────────────────────
 
 class _CalendarTile extends StatelessWidget {
   final TodoModel todo;

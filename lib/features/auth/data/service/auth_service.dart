@@ -8,13 +8,11 @@ class AuthService {
   final _auth = FirebaseAuth.instance;
   final _googleSignIn = GoogleSignIn();
 
-  // ── Stream ────────────────────────────────────────────────────────────────
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
   User? get currentUser => _auth.currentUser;
   String? get uid => _auth.currentUser?.uid;
 
-  // ── Google Sign-In ────────────────────────────────────────────────────────
 
   Future<UserCredential?> signInWithGoogle() async {
     try {
@@ -32,7 +30,6 @@ class AuthService {
     }
   }
 
-  // ── Email / Password ──────────────────────────────────────────────────────
 
   Future<UserCredential> signInWithEmail({
     required String email,
@@ -69,14 +66,12 @@ class AuthService {
     }
   }
 
-  // ── Sign out ──────────────────────────────────────────────────────────────
 
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _auth.signOut();
   }
 
-  // ── Error mapping ─────────────────────────────────────────────────────────
 
   String _mapError(FirebaseAuthException e) {
     switch (e.code) {

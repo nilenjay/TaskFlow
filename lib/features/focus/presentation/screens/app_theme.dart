@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 class AppTheme {
   AppTheme._();
 
-  // ── Background gradient ─────────────────────────────────────────────────
   static const backgroundGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -17,27 +16,22 @@ class AppTheme {
     stops: [0.0, 0.5, 1.0],
   );
 
-  // ── Accent ──────────────────────────────────────────────────────────────
   static const accent = Color(0xFF818CF8);        // indigo-400
   static const accentDim = Color(0xFF4F46E5);     // indigo-600
   static const accentGlow = Color(0x33818CF8);    // 20% accent for glows
 
-  // ── Text ────────────────────────────────────────────────────────────────
   static const textPrimary   = Colors.white;
   static const textSecondary = Color(0xFFCBD5E1); // slate-300
   static const textMuted     = Color(0xFF64748B); // slate-500
 
-  // ── Glass card ──────────────────────────────────────────────────────────
   static const glassFill    = Color(0x12FFFFFF);  // white 7%
   static const glassBorder  = Color(0x1FFFFFFF);  // white 12%
   static const glassBorder2 = Color(0x0DFFFFFF);  // white 5% — subtle inner
 
-  // ── Priority colours (matching existing app) ────────────────────────────
   static const priorityHigh   = Color(0xFFFF6B6B);
   static const priorityMedium = Color(0xFFFFC107);
   static const priorityLow    = Color(0xFF43A047);
 
-  // ── Helpers ─────────────────────────────────────────────────────────────
 
   /// Standard glass card decoration.
   static BoxDecoration glassCard({

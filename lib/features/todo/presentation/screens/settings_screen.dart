@@ -46,7 +46,6 @@ class SettingsScreen extends StatelessWidget {
                     24,
               ),
               children: [
-                // ── Appearance ────────────────────────────────────────
                 _SectionHeader(label: 'APPEARANCE'),
                 const SizedBox(height: 10),
 
@@ -72,7 +71,6 @@ class SettingsScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // ── Notifications ─────────────────────────────────────
                 _SectionHeader(label: 'NOTIFICATIONS'),
                 const SizedBox(height: 10),
 
@@ -104,7 +102,6 @@ class SettingsScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // ── Focus defaults ────────────────────────────────────
                 _SectionHeader(label: 'FOCUS DEFAULTS'),
                 const SizedBox(height: 10),
 
@@ -113,7 +110,6 @@ class SettingsScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Default focus type
                       _SettingsRow(
                         isDark: isDark,
                         icon: Icons.psychology_rounded,
@@ -179,7 +175,6 @@ class SettingsScreen extends StatelessWidget {
                           height: 1),
                       const SizedBox(height: 20),
 
-                      // Default duration
                       _SettingsRow(
                         isDark: isDark,
                         icon: Icons.timer_rounded,
@@ -205,7 +200,6 @@ class SettingsScreen extends StatelessWidget {
                                   .setDefaultDuration(min),
                             );
                           }),
-                          // Custom chip
                           _DurationChip(
                             label: settings.defaultDurationMinutes >
                                 _quickDurations.last
@@ -226,7 +220,6 @@ class SettingsScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // ── Account ───────────────────────────────────────────
                 _SectionHeader(label: 'ACCOUNT'),
                 const SizedBox(height: 10),
                 BlocBuilder<AuthBloc, AuthState>(
@@ -237,7 +230,6 @@ class SettingsScreen extends StatelessWidget {
                         isDark: isDark,
                         child: Column(
                           children: [
-                            // User info
                             Row(
                               children: [
                                 CircleAvatar(
@@ -311,7 +303,6 @@ class SettingsScreen extends StatelessWidget {
                                 color: Colors.white.withOpacity(0.08),
                                 height: 1),
                             const SizedBox(height: 4),
-                            // Sign out
                             ListTile(
                               contentPadding: EdgeInsets.zero,
                               leading: Container(
@@ -343,7 +334,6 @@ class SettingsScreen extends StatelessWidget {
                         ),
                       );
                     }
-                    // Not logged in
                     return _GlassCard(
                       isDark: isDark,
                       child: _SettingsRow(
@@ -359,14 +349,12 @@ class SettingsScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // ── About ─────────────────────────────────────────────
                 _SectionHeader(label: 'ABOUT'),
                 const SizedBox(height: 10),
                 _GlassCard(
                   isDark: isDark,
                   child: Column(
                     children: [
-                      // TaskFlow logo row
                       Row(
                         children: [
                           Container(
@@ -450,7 +438,6 @@ class SettingsScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Handle bar
               Center(
                 child: Container(
                   width: 40,
@@ -472,7 +459,6 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Hours
               _SliderRow(
                 label: 'Hours',
                 value: hours,
@@ -484,7 +470,6 @@ class SettingsScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Minutes
               _SliderRow(
                 label: 'Minutes',
                 value: minutes,
@@ -498,7 +483,6 @@ class SettingsScreen extends StatelessWidget {
 
               const SizedBox(height: 8),
 
-              // Total preview
               Center(
                 child: Text(
                   'Total: ${hours * 60 + minutes} minutes',
@@ -511,7 +495,6 @@ class SettingsScreen extends StatelessWidget {
 
               const SizedBox(height: 28),
 
-              // Confirm
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -543,7 +526,6 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-// ─── Shared widgets ───────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
   final String label;

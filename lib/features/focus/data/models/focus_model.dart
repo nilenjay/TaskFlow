@@ -3,7 +3,6 @@ import 'package:hive/hive.dart';
 
 part 'focus_model.g.dart';
 
-// ─── FocusType enum ───────────────────────────────────────────────────────────
 
 @HiveType(typeId: 1)
 enum FocusType {
@@ -39,11 +38,9 @@ extension FocusTypeLabel on FocusType {
   }
 }
 
-// ─── SessionPhase (runtime only — not persisted) ──────────────────────────────
 
 enum SessionPhase { focus, breakTime }
 
-// ─── BreakInterval (runtime only — not persisted) ─────────────────────────────
 
 class BreakInterval {
   final int afterMinutes;  // elapsed focus minutes when break triggers
@@ -55,7 +52,6 @@ class BreakInterval {
   });
 }
 
-// ─── SessionLog (persisted to Hive) ──────────────────────────────────────────
 
 @HiveType(typeId: 2)
 class SessionLog extends Equatable {
@@ -124,7 +120,6 @@ class SessionLog extends Equatable {
   ];
 }
 
-// ─── Smart Break Calculator ───────────────────────────────────────────────────
 
 List<BreakInterval> calculateBreaks(int totalMinutes, FocusType type) {
   double multiplier = 1.0;

@@ -10,7 +10,6 @@ class TodoFirestoreDataSource {
   CollectionReference<Map<String, dynamic>> _todosRef(String uid) =>
       _db.collection('users').doc(uid).collection('todos');
 
-  // ── Fetch all todos for a user ────────────────────────────────────────────
 
   Future<List<TodoModel>> fetchTodos(String uid) async {
     try {
@@ -23,7 +22,6 @@ class TodoFirestoreDataSource {
     }
   }
 
-  // ── Save (upsert) a single todo ───────────────────────────────────────────
 
   Future<void> saveTodo(String uid, TodoModel todo) async {
     try {
@@ -31,7 +29,6 @@ class TodoFirestoreDataSource {
     } catch (_) {}
   }
 
-  // ── Save all todos (used on first sync) ───────────────────────────────────
 
   Future<void> saveAllTodos(String uid, List<TodoModel> todos) async {
     try {
@@ -43,7 +40,6 @@ class TodoFirestoreDataSource {
     } catch (_) {}
   }
 
-  // ── Delete a single todo ──────────────────────────────────────────────────
 
   Future<void> deleteTodo(String uid, String todoId) async {
     try {
@@ -51,14 +47,12 @@ class TodoFirestoreDataSource {
     } catch (_) {}
   }
 
-  // ── Real-time stream (optional — used for multi-device sync) ──────────────
 
   Stream<List<TodoModel>> watchTodos(String uid) {
     return _todosRef(uid).snapshots().map((snapshot) =>
         snapshot.docs.map((doc) => _fromMap(doc.id, doc.data())).toList());
   }
 
-  // ── Serialization ─────────────────────────────────────────────────────────
 
   Map<String, dynamic> _toMap(TodoModel todo) {
     return {

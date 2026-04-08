@@ -22,14 +22,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthSignOutRequested>(_onSignOut);
     on<AuthUserChanged>(_onUserChanged);
 
-    // Listen to Firebase auth state stream
     _authSubscription = _authService.authStateChanges.listen(
           (user) => add(AuthUserChanged(user)),
     );
   }
 
   void _onStarted(AuthStarted event, Emitter<AuthState> emit) {
-    // Stream listener handles state — nothing to do here
   }
 
   void _onUserChanged(

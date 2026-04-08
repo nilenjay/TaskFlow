@@ -65,7 +65,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 36),
 
-                  // Header
                   Text(
                     'Welcome\nback 👋',
                     style: TextStyle(
@@ -84,7 +83,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 40),
 
-                  // Google
                   GoogleButton(
                     onTap: _isLoading
                         ? null
@@ -97,7 +95,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   const OrDivider(),
                   const SizedBox(height: 24),
 
-                  // Email
                   AuthField(
                     controller: _emailController,
                     hint: 'Email address',
@@ -106,7 +103,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Password
                   AuthField(
                     controller: _passwordController,
                     hint: 'Password',
@@ -127,7 +123,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 6),
 
-                  // Forgot password
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
@@ -140,7 +135,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Sign in
                   _isLoading
                       ? const Center(
                       child: CircularProgressIndicator(
@@ -165,7 +159,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 32),
 
-                  // Go to signup
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -247,9 +240,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () async {
                     final email = controller.text.trim();
                     if (email.isNotEmpty) {
-                      // ignore: use_build_context_synchronously
                       Navigator.pop(ctx);
-                      // Actual reset handled by auth_service
                     }
                   },
                   style: FilledButton.styleFrom(

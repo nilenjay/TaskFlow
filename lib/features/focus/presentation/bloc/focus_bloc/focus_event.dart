@@ -8,7 +8,6 @@ abstract class FocusEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-// ─── Session lifecycle ────────────────────────────────────────────────────────
 
 class StartSession extends FocusEvent {
   final String sessionName;
@@ -46,13 +45,11 @@ class SkipBreak extends FocusEvent {
   const SkipBreak();
 }
 
-// ─── Timer tick (internal) ────────────────────────────────────────────────────
 
 class TimerTicked extends FocusEvent {
   const TimerTicked();
 }
 
-// ─── Post-session ─────────────────────────────────────────────────────────────
 
 class RateSession extends FocusEvent {
   final int rating; // 1–5
@@ -63,7 +60,6 @@ class RateSession extends FocusEvent {
   List<Object?> get props => [rating];
 }
 
-// ─── History ──────────────────────────────────────────────────────────────────
 
 class LoadSessions extends FocusEvent {
   const LoadSessions();

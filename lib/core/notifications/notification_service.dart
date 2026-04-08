@@ -39,7 +39,6 @@ class NotificationService {
 
     await _plugin.initialize(settings);
 
-    // ✅ Direct instantiation — avoids version compatibility issues
     final AndroidFlutterLocalNotificationsPlugin androidPlugin =
     AndroidFlutterLocalNotificationsPlugin();
 

@@ -61,7 +61,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     await _localDataSource.saveTodos(newTodos);
     await _scheduleReminder(newTodo);
 
-    // Sync to Firestore if logged in
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
       await TodoFirestoreDataSource.instance.saveTodo(uid, newTodo);
@@ -89,7 +88,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     await NotificationService.instance
         .cancelNotification(("${event.id}_start").hashCode);
 
-    // Sync to Firestore if logged in
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
       await TodoFirestoreDataSource.instance.deleteTodo(uid, event.id);
@@ -128,7 +126,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
 
     await _localDataSource.saveTodos(newTodos);
 
-    // Sync to Firestore if logged in
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
       await TodoFirestoreDataSource.instance.saveTodo(uid, updatedTodo);
@@ -153,7 +150,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     final newTodos = [...oldTodos, event.todo];
     await _localDataSource.saveTodos(newTodos);
 
-    // Sync to Firestore if logged in
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
       await TodoFirestoreDataSource.instance.saveTodo(uid, event.todo);
@@ -252,7 +248,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
 
     await _localDataSource.saveTodos(newTodos);
 
-    // Sync to Firestore if logged in
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
       await TodoFirestoreDataSource.instance.saveTodo(uid, event.updatedTodo);
@@ -273,8 +268,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
 
     final remoteTodos = await TodoFirestoreDataSource.instance.fetchTodos(uid);
     if (remoteTodos.isNotEmpty) {
-      // Merge logic: For now, we'll replace local with remote if remote is not empty
-      // A better way would be based on updatedAt timestamps
       await _localDataSource.saveTodos(remoteTodos);
       emit(TodoLoaded(
         todos: remoteTodos,

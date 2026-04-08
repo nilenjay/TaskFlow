@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../data/datasources/settings_local_datasource.dart';
 import '../data/models/settings_model.dart';
 
-// ─── State ────────────────────────────────────────────────────────────────────
 
 class SettingsState extends Equatable {
   final AppSettings settings;
@@ -19,7 +18,6 @@ class SettingsState extends Equatable {
   List<Object?> get props => [settings];
 }
 
-// ─── Cubit ────────────────────────────────────────────────────────────────────
 
 class SettingsCubit extends Cubit<SettingsState> {
   final SettingsLocalDataSource _dataSource;

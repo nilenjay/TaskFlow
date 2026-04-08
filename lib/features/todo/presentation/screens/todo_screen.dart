@@ -22,7 +22,6 @@ class TodoScreen extends StatefulWidget {
 class _TodoScreenState extends State<TodoScreen> {
   bool _showCompleted = false;
 
-  // ── Greeting ──────────────────────────────────────────────────────────────
 
   String _greeting() {
     final h = DateTime.now().hour;
@@ -32,7 +31,6 @@ class _TodoScreenState extends State<TodoScreen> {
     return 'Good night 🌙';
   }
 
-  // ── Category config ───────────────────────────────────────────────────────
 
   static const _catConfig = {
     TodoCategory.work:         (label: 'Work',         emoji: '💼', color: Color(0xFF60A5FA)),
@@ -43,7 +41,6 @@ class _TodoScreenState extends State<TodoScreen> {
     TodoCategory.other:        (label: 'Other',        emoji: '📌', color: Color(0xFF94A3B8)),
   };
 
-  // ── Stats row ─────────────────────────────────────────────────────────────
 
   Widget _buildStatsRow(List<TodoModel> todos, bool isDark) {
     final now = DateTime.now();
@@ -96,7 +93,6 @@ class _TodoScreenState extends State<TodoScreen> {
     );
   }
 
-  // ── Streak banner ─────────────────────────────────────────────────────────
 
   Widget _buildStreakBanner(List<TodoModel> todos, bool isDark) {
     final streak = StreakService.instance.calculate(todos);
@@ -160,7 +156,6 @@ class _TodoScreenState extends State<TodoScreen> {
     );
   }
 
-  // ── Progress bar ──────────────────────────────────────────────────────────
 
   Widget _buildProgressBar(List<TodoModel> todos, bool isDark) {
     final total = todos.length;
@@ -204,7 +199,6 @@ class _TodoScreenState extends State<TodoScreen> {
     );
   }
 
-  // ── Section ───────────────────────────────────────────────────────────────
 
   Widget _buildSection(String title, List<TodoModel> todos, bool isDark) {
     if (todos.isEmpty) return const SizedBox();
@@ -277,7 +271,6 @@ class _TodoScreenState extends State<TodoScreen> {
     );
   }
 
-  // ── Todo tile — Image 1 dark dramatic style ───────────────────────────────
 
   Widget _buildTodoTile(TodoModel todo, bool isDark) {
     final cfg = statusConfig(todo.status);
@@ -359,7 +352,6 @@ class _TodoScreenState extends State<TodoScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Top row: title + checkbox
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -411,23 +403,18 @@ class _TodoScreenState extends State<TodoScreen> {
 
                     const SizedBox(height: 10),
 
-                    // Tags row
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
                       children: [
-                        // Status badge — Image 2 gradient pill style
                         _statusBadge(cfg),
-                        // Category tag
                         _categoryTag(catCfg.emoji, catCfg.label, catCfg.color),
-                        // Due date
                         if (todo.dueDate != null)
                           _metaTag(
                             Icons.access_time_rounded,
                             _formatDateTime(todo.dueDate!),
                             _isOverdue(todo) ? const Color(0xFFF87171) : AppTheme.textMuted,
                           ),
-                        // Start
                         if (todo.startReminder != null)
                           _metaTag(
                             Icons.play_circle_outline_rounded,
@@ -451,7 +438,6 @@ class _TodoScreenState extends State<TodoScreen> {
           todo.dueDate != null &&
           todo.dueDate!.isBefore(DateTime.now());
 
-  // ── Status badge — Image 2 gradient pill ─────────────────────────────────
 
   Widget _statusBadge(StatusConfig cfg) {
     return Container(
@@ -504,7 +490,6 @@ class _TodoScreenState extends State<TodoScreen> {
     );
   }
 
-  // ── Sort sheet ────────────────────────────────────────────────────────────
 
   void _showSortSheet(TodoSortOrder current) {
     showModalBottomSheet(
@@ -570,7 +555,6 @@ class _TodoScreenState extends State<TodoScreen> {
     );
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -661,7 +645,6 @@ class _TodoScreenState extends State<TodoScreen> {
               sortOrder = state.sortOrder;
             }
 
-            // Filter
             final now = DateTime.now();
             List<TodoModel> filtered = List.from(todos);
             switch (filter) {
@@ -692,7 +675,6 @@ class _TodoScreenState extends State<TodoScreen> {
                   .toList();
             }
 
-            // Sort
             filtered.sort((a, b) {
               switch (sortOrder) {
                 case TodoSortOrder.dueDate:
@@ -707,12 +689,10 @@ class _TodoScreenState extends State<TodoScreen> {
                 case TodoSortOrder.dateAdded:
                   return b.addedDate.compareTo(a.addedDate);
                 case TodoSortOrder.priority:
-                  // TODO: Handle this case.
                   throw UnimplementedError();
               }
             });
 
-            // Sections
             final tomorrow = now.add(const Duration(days: 1));
             List<TodoModel> completed = [], overdue = [],
                 today = [], tmrw = [], upcoming = [];
@@ -747,7 +727,6 @@ class _TodoScreenState extends State<TodoScreen> {
                 _buildStreakBanner(todos, isDark),
                 _buildProgressBar(todos, isDark),
 
-                // Search
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                   child: TextField(
@@ -780,7 +759,6 @@ class _TodoScreenState extends State<TodoScreen> {
                   ),
                 ),
 
-                // Filter chips
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16, vertical: 10),
@@ -890,7 +868,6 @@ class _TodoScreenState extends State<TodoScreen> {
     );
   }
 
-  // ── Add / Edit dialog ─────────────────────────────────────────────────────
 
   void _showAddDialog() => _showEditDialog(null);
 
@@ -939,7 +916,6 @@ class _TodoScreenState extends State<TodoScreen> {
                           fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
 
-                  // Description
                   TextField(
                     controller: controller,
                     style: const TextStyle(color: AppTheme.textPrimary),
@@ -948,7 +924,6 @@ class _TodoScreenState extends State<TodoScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Status picker
                   _sheetLabel('Status'),
                   const SizedBox(height: 8),
                   Wrap(
@@ -1001,7 +976,6 @@ class _TodoScreenState extends State<TodoScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Category picker
                   _sheetLabel('Category'),
                   const SizedBox(height: 8),
                   SingleChildScrollView(
@@ -1054,7 +1028,6 @@ class _TodoScreenState extends State<TodoScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Dates
                   Row(
                     children: [
                       Expanded(
@@ -1119,7 +1092,6 @@ class _TodoScreenState extends State<TodoScreen> {
                       onPressed: () {
                         final text = controller.text.trim();
                         if (text.isEmpty) return;
-                        // Auto-complete if status is done
                         final isComplete = selectedStatus == TodoStatus.done;
                         if (todo == null) {
                           context.read<TodoBloc>().add(AddTodo(
@@ -1227,7 +1199,6 @@ class _TodoScreenState extends State<TodoScreen> {
   }
 }
 
-// ─── Priority helpers kept public for calendar_screen ────────────────────────
 
 Color getPriorityColor(int priority) => AppTheme.accent;
 

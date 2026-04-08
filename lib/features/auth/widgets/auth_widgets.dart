@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:todo_app/features/todo/presentation/screens/app_theme.dart';
 
-// ─── TaskFlow logo row ────────────────────────────────────────────────────────
 
 class TaskFlowLogo extends StatelessWidget {
   const TaskFlowLogo({super.key});
@@ -45,7 +44,6 @@ class TaskFlowLogo extends StatelessWidget {
   }
 }
 
-// ─── Google button ────────────────────────────────────────────────────────────
 
 class GoogleButton extends StatelessWidget {
   final VoidCallback? onTap;
@@ -108,7 +106,6 @@ class GoogleButton extends StatelessWidget {
   }
 }
 
-// ─── Text field ───────────────────────────────────────────────────────────────
 
 class AuthField extends StatelessWidget {
   final TextEditingController controller;
@@ -163,7 +160,6 @@ class AuthField extends StatelessWidget {
   }
 }
 
-// ─── Primary button ───────────────────────────────────────────────────────────
 
 class PrimaryButton extends StatelessWidget {
   final String label;
@@ -211,7 +207,6 @@ class PrimaryButton extends StatelessWidget {
   }
 }
 
-// ─── OR divider ───────────────────────────────────────────────────────────────
 
 class OrDivider extends StatelessWidget {
   const OrDivider({super.key});

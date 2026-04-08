@@ -70,7 +70,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
                   const SizedBox(height: 36),
 
-                  // Header
                   Text(
                     'Create\naccount ✨',
                     style: TextStyle(
@@ -89,7 +88,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
                   const SizedBox(height: 36),
 
-                  // Google
                   GoogleButton(
                     label: 'Sign up with Google',
                     onTap: _isLoading
@@ -103,7 +101,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   const OrDivider(),
                   const SizedBox(height: 20),
 
-                  // Name
                   AuthField(
                     controller: _nameController,
                     hint: 'Full name',
@@ -111,7 +108,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Email
                   AuthField(
                     controller: _emailController,
                     hint: 'Email address',
@@ -120,7 +116,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Password
                   AuthField(
                     controller: _passwordController,
                     hint: 'Password',
@@ -140,7 +135,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Confirm password
                   AuthField(
                     controller: _confirmController,
                     hint: 'Confirm password',
@@ -161,7 +155,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
                   const SizedBox(height: 28),
 
-                  // Create account
                   _isLoading
                       ? const Center(
                       child: CircularProgressIndicator(
@@ -203,7 +196,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
                   const SizedBox(height: 32),
 
-                  // Go to login
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
